@@ -15,17 +15,20 @@ if ~Reentrant
 end
 
 if ~Reentrant % If Reentrant = true, don't run startup dialogs and don't initialize global vars
-	global Project_;       Project_       = 'MMS_EDI_EDP_driftstep';
-	global dotVersion;     dotVersion     = 'v1.00.00';
-	global beamsInWindow;  beamsInWindow  = 8; % n, NOTE !!!! ± beamsInWindow before|after center beam time
-	global beamWindowSecs; beamWindowSecs = 4; % (s), NOTE !!!! ± beamWindowSecs before|after center beam time
+	global Project_;             Project_            = 'MMS_EDI_EDP_driftstep';
+	global dotVersion;           dotVersion          = 'v1.01.00';
+	global beamsInWindow;        beamsInWindow       = 8; % n, NOTE !!!! ± beamsInWindow before|after center beam time
+	global beamWindowSecs;       beamWindowSecs      = 4; % (s), NOTE !!!! ± beamWindowSecs before|after center beam time
+	global PlotBeamConvergence;  PlotBeamConvergence = false; % Calculate and plot S* from displayed beams
+	global PlotHoldOff;          PlotHoldOff         = true;  % Set to false to plot multiple beam data records on the same plot; true gets but 1
+	global PlotSubplots;         PlotSubplots        = false; % true=plot the data as it is read in; only works for read routines with embedded plot commands
+	global PlotView;             PlotView            = '2D';  % or 3D; the plot is always 3D, but this switches the initial plot display perspective
+	global ScrollData;           ScrollData          = true;
+	global UseFileOpenGUI;       UseFileOpenGUI      = true;
+	global Use_OCS_plot;         Use_OCS_plot        = false;
 	beamWindowDays = beamWindowSecs / 86400.0; % Convert from seconds to days; to compare with datenums
-	global PlotHoldOff;    PlotHoldOff    = true;  % Set to false to plot multiple beam data records on the same plot; true gets but 1            
-	global PlotSubplots;   PlotSubplots   = false; % true=plot the data as it is read in; only works for read routines with embedded plot commands
-	global PlotView;       PlotView       = '2D';  % or 3D; the plot is always 3D, but this switches the initial plot display perspective         
-	global ScrollData;     ScrollData     = true;
-	global UseFileOpenGUI; UseFileOpenGUI = true;
-	global Use_OCS_plot;   Use_OCS_plot   = false;
+	sinx_wt_Q_xovr_angles = [ 8.0 30 ];
+	global sinx_wt_Q_xovr;       sinx_wt_Q_xovr      = sind (sinx_wt_Q_xovr_angles).^4.0; % breakpoints for quality ranges for sin^x weighting
 
 	RichTest = false; % true false
 
@@ -147,15 +150,18 @@ end % if ~Reentrant
 ButtonReply  = '';
 DSI_view3D = true;
 Selection = 2;
-strSelection = '> Beam >';
 plotBeamDots = false;
+strSelection    = '> Beam >';
 strPlotBeamDots = 'Plot Beam Dots is OFF';
+strCalc_S_star  = 'Calculate S* is OFF';
 
 if ScrollData
 	while ValidDataLoaded && ~strcmp (strSelection, 'Quit')
 		if ~isempty (strfind ([ ...
 			'< Beam <', ...
 			'> Beam >', ...
+			'Calculate S* is OFF', ...
+			'Calculate S* is ON', ...
 			'Skip via EDP', ...
 			'Plot Beam Dots is OFF', ...
 			'Plot Beam Dots is ON' ], ...
@@ -169,6 +175,7 @@ if ScrollData
 			'< Beam <', ...
 			'> Beam >', ...
 			strReentrant, ...
+			strCalc_S_star, ...
 			'Skip via EDP', ...
 			'Save Plots', ...
 			'Save Snapshot', ...
@@ -182,7 +189,7 @@ if ScrollData
 			'SelectionMode', 'single', ...
 			'CancelString', 'Quit', ...
 			'InitialValue', [Selection], ...
-			'ListSize', [ 200 200 ], ...
+			'ListSize', [ 220 220 ], ...
 			'ListString', ListCaptions);
 
 		set (0, 'DefaultUIControlFontSize', Default_UIControlFontSize);
@@ -202,6 +209,14 @@ if ScrollData
 				case 'Reentrancy is ON'
 					Reentrant = false;
 					strReentrant = 'Reentrancy is OFF';
+
+				case strCalc_S_star
+					PlotBeamConvergence = ~PlotBeamConvergence;
+					if PlotBeamConvergence
+						strCalc_S_star = 'Calculate S* is ON';
+					else
+						strCalc_S_star = 'Calculate S* is OFF';
+					end
 
 				case 'Skip via EDP'
 					figure (hEDP_plot);

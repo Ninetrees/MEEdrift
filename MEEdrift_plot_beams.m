@@ -31,8 +31,8 @@ nbeamIntercepts    = uint32 (0);
 nTargetBeams       = uint32 (0);
 targetBeamsGDU_Loc = zeros (3, 20, 'double'); % needs to be high enough for max expected beam count
 targetBeamAngle    = zeros (3, 20, 'double'); % needs to be high enough for max expected beam count
-targetBeam2DSlope  = zeros (1, 20, 'double');
-targetBeam2Db      = zeros (1, 20, 'double');
+S_star_beams_m_bpp = zeros (1, 20, 'double');
+S_star_beams_b_bpp    = zeros (1, 20, 'double');
 
 if Use_OCS_plot
 	set (0, 'CurrentFigure', hDMPA_plot) % hDMPA_plotElements
@@ -265,12 +265,23 @@ for BeamBracketIndex = (iiSorted_beam_t2k - beamsInWindow) : (iiSorted_beam_t2k 
 			% for the intersections of the beams in 2D. Here we gather the info that we'll need later:
 			% slope and y-intercept. After processing all the beams, we'll calculate the intersections.
 			% y = mx + b => m = dy/dx = (y2-y1) / (x2-x1); b = y1 - m*x1
-% 			nTargetBeams = nTargetBeams + 1;
-%% 			targetBeamsGDU_Loc (1:2, nTargetBeams) = GDU_LocBPP (1:2); % Effectively sets GDUz_loc to zero.
-%% 			targetBeamAngle    (:, nTargetBeams)   = DMPA2BPP * FiringDir;
-% 			targetBeam2DSlope (nTargetBeams) = (BeamEndBPP (2) - BeamStartBPP (2)) / (BeamEndBPP (1) - BeamStartBPP (1)); % dy/dx
-% 			targetBeam2Db     (nTargetBeams) = BeamStartBPP (2) - targetBeam2DSlope (nTargetBeams) * BeamStartBPP (1); % b = y - mx
+			if PlotBeamConvergence
+				nTargetBeams = nTargetBeams + 1;
+	%% 			targetBeamsGDU_Loc (1:2, nTargetBeams) = GDU_LocBPP (1:2); % Effectively sets GDUz_loc to zero.
+	%% 			targetBeamAngle    (:, nTargetBeams)   = DMPA2BPP * FiringDir;
+				S_star_beams_m_bpp (nTargetBeams) = (BeamEndBPP (2) - BeamStartBPP (2)) / (BeamEndBPP (1) - BeamStartBPP (1)); % dy/dx
+				S_star_beams_b_bpp (nTargetBeams) = BeamStartBPP (2) - S_star_beams_m_bpp (nTargetBeams) * BeamStartBPP (1); % b = y - mx
+			end
+
 % 			FiringDirBPP (:, nTargetBeams)   = DMPA2BPP * FiringDir (:);
+% disp 'three methods for calculating E_vPerp_phi_ToF'
+% E_vPerp_phi_ToF = ...
+% 	(tan (-gyroFrequency * gyroPeriod - atan2 (-FiringDirBPP (2, nTargetBeams), -FiringDirBPP (1, nTargetBeams))) * ...
+% 	 B2norm * v_1keV_electron * cos (gyroFrequency * gyroPeriod)) * 1.0e-9 % (nt > T, V > mV)
+% E_vPerp_phi_ToF = ...
+% 	(tan (-gyroFrequency * gyroPeriod - atan (FiringDirBPP (2, nTargetBeams) / FiringDirBPP (1, nTargetBeams))) * ...
+% 	 B2norm * v_1keV_electron * cos (gyroFrequency * gyroPeriod)) * 1.0e-9 % (nt > T, V > mV)
+% E_vPerp_phi_ToF = -2.0 * B2norm * v_1keV_electron * sin (atan (FiringDirBPP (2, nTargetBeams) / FiringDirBPP (1, nTargetBeams))) / (gyroFrequency * gyroPeriod) * 1.0e-9 % (nt > T, V > mV)
 
 			% Find the EFW L2 target in the BPP plane defined by the centerBeamB and DMPA2BPP for this beam
 			% 1. Rotate BavgSCS (nT) into BPP coordinates (needed for edp_E_interp calculations following)
@@ -428,78 +439,36 @@ for BeamBracketIndex = (iiSorted_beam_t2k - beamsInWindow) : (iiSorted_beam_t2k 
 					EDP_dataInRange = false;
 				end
 
-% 				if S_star_dmpa (1) ~= -edi_d_dmpa_fillVal % S* is the negative of the drift step, so FILLVALs are negated, too
-% 					plot3 (S_star_dmpa (1), S_star_dmpa (2), S_star_dmpa (3), ...
-% 						'LineStyle', 'none', 'Marker', 'o', 'MarkerFaceColor', 'blue', 'MarkerEdgeColor', 'green', 'MarkerSize', 10.0);
-% 					disp ( [ 'S* BPP          : ', sprintf('%+8.3f %+8.3f %+8.3f', S_star_bpp) ] );
-% 				end
 			end % if BeamBracketIndex == iCenterBeam
 		end % if beams within beamWindowSecs seconds of center beam
 
 	end % if ((BeamBracketIndex > 0) & (BeamBracketIndex < BeamRecords))
-end % BeamBracketIndex
+end % for BeamBracketIndex...
 
-%{
+
 % Find center of beam intersections, if there are > 1 beams
 % There is a chance that some lines will be parallel, or nearly so... this must be eventually handled
 % if this method proves viable. y = mx + b => -mx + y = b
 % | -m 1| |x| = |b|, where || signals a matrix; then [x y] = M \ b
-set (0, 'CurrentFigure', hBPP_plot) % hBPP_plotElements
-if nTargetBeams > 1
-	nbeamIntercepts = 0;
-	for i = 2: nTargetBeams
-		for j = 1: i-1
-			XY = [ ...
-				-targetBeam2DSlope(i) 1 ;
-				-targetBeam2DSlope(j) 1 ];
-			b = [ targetBeam2Db(i) ; targetBeam2Db(j) ];
-			nbeamIntercepts = nbeamIntercepts + 1;
-			beamIntercepts (:, nbeamIntercepts) = XY \ b;
+if PlotBeamConvergence
+	if nTargetBeams > 1
+		S_star_beams_m_bpp (nTargetBeams+1: end) = [];
+		S_star_beams_b_bpp (nTargetBeams+1: end) = [];
+		MEEdrift_edi_drift_step
+
+		set (0, 'CurrentFigure', hBPP_plot) % hDMPA_plotElements
+		if plotBeamDots
+			plot3 (beamIntercepts (1,:), beamIntercepts (2,:), 0.0*[1:nBeamIntercepts], ...
+				'LineStyle', 'none', 'Marker', 'o', ...
+				'MarkerFaceColor', myLightGrey4, 'MarkerEdgeColor', myLightGrey4, 'MarkerSize', 2.0);
 		end
-	end
-	beamIntercepts (:, nbeamIntercepts+1:end) = [];
-	beamInterceptMean = mean (beamIntercepts, 2)
-	beamInterceptStdDev = std (beamIntercepts, 1, 2)
 
-% 	ibx = find ( abs(beamIntercepts (1, :) - beamInterceptMean (1)) > 2.0 * beamInterceptMean (1) );
-% 	beamIntercepts (:,ibx) = [];
-% 	ibx = find ( abs(beamIntercepts (2, :) - beamInterceptMean (2)) > 2.0 * beamInterceptMean (2) );
-% 	beamIntercepts (:, ibx) = [];
+		plot3 (GrubbsBeamInterceptMean (1), GrubbsBeamInterceptMean (2), 0.0, ...
+			'LineStyle', 'none', 'Marker', 'o', 'MarkerFaceColor', 'blue', 'MarkerEdgeColor', 'green', 'MarkerSize', 5.0);
 
-	nBeamIntercepts = length (beamIntercepts);
-	if nBeamIntercepts > 3
-		ibx = find ( abs(beamIntercepts (1, :) - beamInterceptMean (1)) > 1.0 * beamInterceptStdDev (1) ); % n-sigma acceptance
-		beamIntercepts (:,ibx) = [];
-		ibx = find ( abs(beamIntercepts (2, :) - beamInterceptMean (2)) > 1.0 * beamInterceptStdDev (2) );
-		beamIntercepts (:, ibx) = [];
-
-		nBeamIntercepts = length (beamIntercepts);
-		if nBeamIntercepts > 3
-			beamInterceptMean = mean (beamIntercepts, 2)
-			beamInterceptStdDev = std (beamIntercepts, 1, 2)
-% 			ibx = find ( abs(beamIntercepts (1, :) - beamInterceptMean (1)) > 2.0 * beamInterceptStdDev (1) );
-% 			beamIntercepts (:,ibx) = [];
-% 			ibx = find ( abs(beamIntercepts (2, :) - beamInterceptMean (2)) > 2.0 * beamInterceptStdDev (2) );
-% 			beamIntercepts (:, ibx) = [];
-		end
-% 		beamInterceptMean = mean (beamIntercepts, 2)
-% 		beamInterceptStdDev = std (beamIntercepts, 1, 2)
-	end
-
-	if plotBeamDots
-		plot3 (beamIntercepts (1,:), beamIntercepts (2,:), 0.0*[1:nBeamIntercepts], ...
-			'LineStyle', 'none', 'Marker', 'o', 'MarkerFaceColor', myLightGrey4, 'MarkerEdgeColor', myLightGrey4, 'MarkerSize', 2.0);
-	end
-
-% 	plot3 (beamInterceptMean (1), beamInterceptMean (2), 0.0, ...
-% 		'LineStyle', 'none', 'Marker', 'o', 'MarkerFaceColor', 'green', 'MarkerEdgeColor', 'green', 'MarkerSize', 10.0);
-% 	bweighted = mean (beamIntercepts, 2)
-
-	plot3 (beamInterceptMean (1), beamInterceptMean (2), 0.0, ...
-		'LineStyle', 'none', 'Marker', 'o', 'MarkerFaceColor', 'blue', 'MarkerEdgeColor', 'green', 'MarkerSize', 10.0);
-	disp ( [ 'Beam convergence: ', sprintf('%+8.3f %+8.3f %+8.3f', beamInterceptMean, 0.0) ] );
-end
-%}
+		disp ( [ 'Beam convergence, S*: ', sprintf('%+8.3f %+8.3f %+8.3f', GrubbsBeamInterceptMean, 0.0) ] );
+	end % 	if nTargetBeams > 1
+end % if PlotBeamConvergence
 
 if Use_OCS_plot
 	if (length (hDMPA_plotElements) > 9) hDMPA_plotElements (9:length (hDMPA_plotElements)) = []; end;
@@ -558,7 +527,7 @@ if EDP_dataInRange
 	axes (hEDP_plot_mainAxes);
 	delete (hEDP_plot_index_line);
 	EDP_dataPlotIndexLine = centerBeam_dn;
-disp ( sprintf ('Skip via EDP: EDP_dataPlotIndexLine %s', datestr (EDP_dataPlotIndexLine, 'yyyy-mm-dd HH:MM:ss.fff') ) ) % V&V
+disp ( sprintf ('EDP_dataPlotIndexLine %s', datestr (EDP_dataPlotIndexLine, 'yyyy-mm-dd HH:MM:ss.fff') ) ) % V&V
 % 	datestr (centerBeam_dn, 'yyyy-mm-dd HH:MM:ss.fff') % V&V
 	hold on
 	hEDP_plot_index_line = line ( [EDP_dataPlotIndexLine EDP_dataPlotIndexLine], get (hEDP_plot_mainAxes, 'YLim'), 'Color', 'red' , 'LineStyle', '-' , 'LineWidth', 2);

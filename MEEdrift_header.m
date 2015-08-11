@@ -1,13 +1,18 @@
 %{
 	Name: MEEdrift
 	Description: Correct EFW E-field measurements based on EDI measurements
-	Revision History (Version; Author; Date; Reason):
-	v0100; 2015-06-16;
-		V 01.00
-		Uses special EDI, B, EDP extracts from commissioning data for initial dev
-		MMS2: May 9, 2015  16:08 - 16:13
-		MMS4: May 6, 2015  15:30 - 15:35
-		Prepare MEEdrift for git, GitHub version control system
+
+	2015-08-12 ~ v01.01.00:
+	 ~ MEEdrift plots S* from the EDI data file. Add S* plot from selected beams.
+	   Make it menu-selectable.
+	 ~ Import production EDI drift step code, including Grubbs outliers code.
+	 ~ Update 7zip and Git pkg files.
+
+	2015-08-09 ~ v01.00.00:
+	 ~ Uses special EDI, B, EDP extracts from commissioning data for initial dev
+	   MMS2: May 9, 2015  16:08 - 16:13
+	   MMS4: May 6, 2015  15:30 - 15:35
+	 ~ Prepare MEEdrift for git, GitHub version control system
 
 	Important !!! notes about variable naming conventions
 	iVarName is an index to VarName
@@ -16,6 +21,7 @@
 	_dn  indicates a MATLAB datenum variable
 	_t2k indicates a CDF TT2000 variable
 	u or _u is a unit vector; _u used for clarity when needed
+	2n indicates a norm 2 result.
 
 	MATLAB datenum does not include leap seconds as of 2015-07-28, so...
 	the chioces are tt2000 or tt2000~>ssm (seconds since midnight).
