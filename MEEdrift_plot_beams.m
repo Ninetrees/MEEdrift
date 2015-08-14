@@ -35,15 +35,15 @@ S_star_beams_m_bpp = zeros (1, 20, 'double');
 S_star_beams_b_bpp    = zeros (1, 20, 'double');
 
 if Use_OCS_plot
-	set (0, 'CurrentFigure', hDMPA_plot) % hDMPA_plotElements
+	set (0, 'CurrentFigure', fDMPA_plot) % hDMPA_plotElements
 	clf
 else
-	set (hDMPA_plot, 'visible', 'off');
+	set (fDMPA_plot, 'visible', 'off');
 end
 
-set (0, 'CurrentFigure', hBPP_plot) % hBPP_plotElements DMPA2BPP
+set (0, 'CurrentFigure', fBPP_plot) % hBPP_plotElements DMPA2BPP
 clf
-% set (hBPP_plot, 'visible', 'off');
+% set (fBPP_plot, 'visible', 'off');
 disp '---'
 
 % iCenterBeam is an index, not a time; points to the center beam used for calculations
@@ -135,7 +135,7 @@ BPP2DMPA = DMPA2BPP';
 
 % Plot the spacecraft outline in DMPA
 if Use_OCS_plot
-	set (0, 'CurrentFigure', hDMPA_plot) % hDMPA_plotElements
+	set (0, 'CurrentFigure', fDMPA_plot) % hDMPA_plotElements
 	hDMPA_plotElements (1) = plot3 ( ...
 		instrPlaneDMPA (1,:), instrPlaneDMPA (2,:), instrPlaneDMPA (3,:), ...
 		'LineStyle', '-', 'LineWidth', 1.0, 'Color', myDarkTeal);
@@ -149,7 +149,7 @@ if Use_OCS_plot
 		'LineStyle', '-', 'LineWidth', 1.0, 'Color', 'blue');
 end
 
-set (0, 'CurrentFigure', hBPP_plot) % hBPP_plotElements DMPA2BPP
+set (0, 'CurrentFigure', fBPP_plot) % hBPP_plotElements DMPA2BPP
 % Plot the sc as seen from BPP
 instrPlaneDMPAinBPP = DMPA2BPP * instrPlaneDMPA;
 % hBPP_plotElements (1) = plot3 (instrPlaneDMPAinBPP (1,:), instrPlaneDMPAinBPP (2,:), flipFlag * instrPlaneDMPAinBPP (3,:), 'LineStyle', '-', 'LineWidth', 1.0, 'Color', myDarkTeal);
@@ -178,8 +178,8 @@ if PlotHoldOff
 end
 
 if Use_OCS_plot
-	set (0, 'CurrentFigure', hDMPA_plot) % hDMPA_plotElements
-	set (hDMPA_plot, 'color', 'white'); % sets the color to white
+	set (0, 'CurrentFigure', fDMPA_plot) % hDMPA_plotElements
+	set (fDMPA_plot, 'color', 'white'); % sets the color to white
 	AxisMax = 4;
 	axis ([ -AxisMax AxisMax  -AxisMax AxisMax  -AxisMax AxisMax  -AxisMax AxisMax ]); % expanded axes for viewing larger drift steps
 	axis square;
@@ -189,8 +189,8 @@ if Use_OCS_plot
 	set (gca, 'XColor', myLightGrey4, 'YColor', myLightGrey4, 'ZColor', myLightGrey4)
 end
 
-set (0, 'CurrentFigure', hBPP_plot) % hBPP_plotElements DMPA2BPP
-set (hBPP_plot, 'color', 'white'); % sets the color to white
+set (0, 'CurrentFigure', fBPP_plot) % hBPP_plotElements DMPA2BPP
+set (fBPP_plot, 'color', 'white'); % sets the color to white
 AxisMax = 4;
 axis ([ -AxisMax AxisMax  -AxisMax AxisMax  -AxisMax AxisMax  -AxisMax AxisMax ]); % expanded axes for viewing larger drift steps
 axis square;
@@ -200,7 +200,7 @@ grid on;
 set (gca, 'XColor', myLightGrey4, 'YColor', myLightGrey4, 'ZColor', myLightGrey4)
 
 EDP_dataInRange = true;
-for BeamBracketIndex = (iiSorted_beam_t2k - beamsInWindow) : (iiSorted_beam_t2k + beamsInWindow)
+for BeamBracketIndex = (iiSorted_beam_t2k - beamsWindow) : (iiSorted_beam_t2k + beamsWindow)
 
 	% BeamBracketIndex is uint32, so can't be < 0; just check for max size
 	if ((BeamBracketIndex > 0) & (BeamBracketIndex < nBeams)) % catch array edge faults
@@ -215,7 +215,7 @@ for BeamBracketIndex = (iiSorted_beam_t2k - beamsInWindow) : (iiSorted_beam_t2k 
 
 			GDU_Loc = edi_gd_virtual_dmpa (:, iBeam);
 			if Use_OCS_plot
-				set (0, 'CurrentFigure', hDMPA_plot) % hDMPA_plotElements
+				set (0, 'CurrentFigure', fDMPA_plot) % hDMPA_plotElements
 				if GDU_ID == 1
 					hDMPA_plotElements (3) = plot3 (GDU_Loc (1), GDU_Loc (2), GDU_Loc (3), 'LineStyle', 'none', ...
 						'Marker', 'o', 'MarkerFaceColor', 'white',   'MarkerEdgeColor', BeamColor, 'MarkerSize', 5.0); % GDU 1
@@ -226,7 +226,7 @@ for BeamBracketIndex = (iiSorted_beam_t2k - beamsInWindow) : (iiSorted_beam_t2k 
 			end
 
 			GDU_LocBPP = DMPA2BPP * GDU_Loc;
-			set (0, 'CurrentFigure', hBPP_plot) % hBPP_plotElements DMPA2BPP
+			set (0, 'CurrentFigure', fBPP_plot) % hBPP_plotElements DMPA2BPP
 			disp (sprintf ('GDU: %d edi_gd_beam_t2k: %s x: %4.1f y: %4.1f', ...
 				GDU_ID, datestr (edi_gd_beam_dn (iBeam), 'yyyy-mm-dd HH:MM:SS.fff'), ...
 				GDU_LocBPP (1), GDU_LocBPP (2) ))
@@ -244,14 +244,14 @@ for BeamBracketIndex = (iiSorted_beam_t2k - beamsInWindow) : (iiSorted_beam_t2k 
 			BeamStart = GDU_Loc - 5.0 * FiringDir;
 			BeamEnd   = GDU_Loc +       FiringDir;
 			if Use_OCS_plot
-				set (0, 'CurrentFigure', hDMPA_plot) % hDMPA_plotElements
+				set (0, 'CurrentFigure', fDMPA_plot) % hDMPA_plotElements
 				hDMPA_plotElements (5) = line ( [ BeamStart(1) BeamEnd(1) ], [ BeamStart(2) BeamEnd(2) ], [ BeamStart(3) BeamEnd(3) ], ...
 					'LineStyle', ':', 'LineWidth', 1.0, 'Color', BeamColor); % Beam
 			end
 
 			BeamStartBPP =  DMPA2BPP * BeamStart;
 			BeamEndBPP   =  DMPA2BPP * BeamEnd;
-			set (0, 'CurrentFigure', hBPP_plot) % hBPP_plotElements BPP2DMPA
+			set (0, 'CurrentFigure', fBPP_plot) % hBPP_plotElements BPP2DMPA
 			% The beams are // already // parallel to BPP, so all we need to do is move them to the GDUs.
 			% This should place them all in the same plane.
 			hBPP_plotElements (5) = line ( [ BeamStartBPP(1) BeamEndBPP(1) ], [ BeamStartBPP(2) BeamEndBPP(2) ], [ BeamStartBPP(3) BeamEndBPP(3) ], ...
@@ -293,25 +293,25 @@ for BeamBracketIndex = (iiSorted_beam_t2k - beamsInWindow) : (iiSorted_beam_t2k 
 % disp 'iBeam == iCenterBeam'
 				% centerBeamB : nT, 3D beam B-field vector, DMPA
 				if Use_OCS_plot
-					set (0, 'CurrentFigure', hDMPA_plot) % hDMPA_plotElements
+					set (0, 'CurrentFigure', fDMPA_plot) % hDMPA_plotElements
 					hDMPA_plotElements (6) = line ( [ 0.0 centerBeamB_u(1) ], [ 0.0 centerBeamB_u(2) ], [ 0.0 centerBeamB_u(3) ], ...
 						'LineStyle', '-', 'LineWidth', 2.0, 'Color', myDarkBlue); % B field vector
 				end
 
-				set (0, 'CurrentFigure', hBPP_plot) % hBPP_plotElements DMPA2BPP
+				set (0, 'CurrentFigure', fBPP_plot) % hBPP_plotElements DMPA2BPP
 				% centerBeamB_u is the real B unit vector.
 				CenterBeamBavgBPP_u = DMPA2BPP * centerBeamB_u;
 				hBPP_plotElements (6) = line ( [ 0.0 CenterBeamBavgBPP_u(1) ], [ 0.0 CenterBeamBavgBPP_u(2) ], [ 0.0 CenterBeamBavgBPP_u(3) ], ...
 					'LineStyle', '-', 'LineWidth', 2.0, 'Color', myDarkBlue); % B field vector
 
 				if Use_OCS_plot
-					set (0, 'CurrentFigure', hDMPA_plot) % hDMPA_plotElements
+					set (0, 'CurrentFigure', fDMPA_plot) % hDMPA_plotElements
 					hDMPA_plotElements (7) = line ( ...
 						[ 0.0 centerBeamEu(1) ], [ 0.0 centerBeamEu(2) ], [ 0.0 centerBeamEu(3) ], ...
 						'LineStyle', '-', 'LineWidth', 2.0, 'Color', myDarkRed); % E DMPA field unit vector
 				end
 
-				set (0, 'CurrentFigure', hBPP_plot) % hBPP_plotElements DMPA2BPP
+				set (0, 'CurrentFigure', fBPP_plot) % hBPP_plotElements DMPA2BPP
 				centerBeamEu_bpp = DMPA2BPP * centerBeamEu;
 				hBPP_plotElements (7) = line ( ...
 					[ 0.0 centerBeamEu_bpp(1) ], [ 0.0 centerBeamEu_bpp(2) ], [ 0.0 centerBeamEu_bpp(3) ], ...
@@ -319,13 +319,13 @@ for BeamBracketIndex = (iiSorted_beam_t2k - beamsInWindow) : (iiSorted_beam_t2k 
 
 				if S_star_dmpa (1) ~= -edi_d_dmpa_fillVal % S* is the negative of the drift step, so FILLVALs are negated, too
 					if Use_OCS_plot
-						set (0, 'CurrentFigure', hDMPA_plot) % hDMPA_plotElements
+						set (0, 'CurrentFigure', fDMPA_plot) % hDMPA_plotElements
 						hDMPA_plotElements (8) = plot3 ( ...
 							S_star_dmpa (1), S_star_dmpa (2), S_star_dmpa (3), ...
 							'LineStyle', 'none', 'Marker', 'o', 'MarkerFaceColor', 'red', 'MarkerEdgeColor', 'red', 'MarkerSize', 5.0);
 					end
 
-					set (0, 'CurrentFigure', hBPP_plot) % hBPP_plotElements
+					set (0, 'CurrentFigure', fBPP_plot) % hBPP_plotElements
 					S_star_bpp = DMPA2BPP * S_star_dmpa;
 					hBPP_plotElements (8) = plot3 ( ...
 						S_star_bpp (1), S_star_bpp (2), S_star_bpp (3), ...
@@ -387,12 +387,12 @@ for BeamBracketIndex = (iiSorted_beam_t2k - beamsInWindow) : (iiSorted_beam_t2k 
 					disp ( [ 'centerBeamB  DMPA: ', sprintf('%+8.3f %+8.3f %+8.3f', centerBeamB) ] );
 
 					if Use_OCS_plot
-						set (0, 'CurrentFigure', hDMPA_plot) % hDMPA_plotElements
+						set (0, 'CurrentFigure', fDMPA_plot) % hDMPA_plotElements
 						hDMPA_plotElements (9) = line ( [ 0.0 edp_E_interp_u(1) ], [ 0.0 edp_E_interp_u(2) ], [ 0.0 edp_E_interp_u(3) ], ...
 							'LineStyle', '-', 'LineWidth', 2.0, 'Color', myDarkGreen); % E DMPA field vector
 					end
 
-					set (0, 'CurrentFigure', hBPP_plot) % hBPP_plotElements DMPA2BPP
+					set (0, 'CurrentFigure', fBPP_plot) % hBPP_plotElements DMPA2BPP
 					edp_E_BPPu = DMPA2BPP * edp_E_interp_u;
 					hBPP_plotElements (9) = line ( [ 0.0 edp_E_BPPu(1) ], [ 0.0 edp_E_BPPu(2) ], [ 0.0 edp_E_BPPu(3) ], ...
 						'LineStyle', '-', 'LineWidth', 2.0, 'Color', myDarkGreen); % E DMPA field vector
@@ -431,7 +431,8 @@ for BeamBracketIndex = (iiSorted_beam_t2k - beamsInWindow) : (iiSorted_beam_t2k 
 % 					end
 
 					edp_zoomStart = iEDP_t2kLO - 100;
-					edp_zoomEnd   = edp_zoomStart + 200;
+					edp_zoomStart = max (1, edp_zoomStart);
+					edp_zoomEnd   = edp_zoomStart + 199;
 					MEEdrift_plot_EDP_zoomed_region
 
 				else
@@ -456,7 +457,7 @@ if PlotBeamConvergence
 		S_star_beams_b_bpp (nTargetBeams+1: end) = [];
 		MEEdrift_edi_drift_step
 
-		set (0, 'CurrentFigure', hBPP_plot) % hDMPA_plotElements
+		set (0, 'CurrentFigure', fBPP_plot) % hDMPA_plotElements
 		if plotBeamDots
 			plot3 (beamIntercepts (1,:), beamIntercepts (2,:), 0.0*[1:nBeamIntercepts], ...
 				'LineStyle', 'none', 'Marker', 'o', ...
@@ -476,19 +477,19 @@ end
 if (length (hBPP_plotElements) > 9) hBPP_plotElements (9:length (hBPP_plotElements)) = []; end;
 
 if Use_OCS_plot
-	set (0, 'CurrentFigure', hDMPA_plot) % hDMPA_plotElements
+	set (0, 'CurrentFigure', fDMPA_plot) % hDMPA_plotElements
 	hDMPA__BPP_legendAxes = gca;
 	p = hDMPA_plotElements;
 	PlotView = '3D'; % flag for ...annotate...
 	% 	MEEdrift_annotate_DMPA_BPP_plots
 	% xlabel ('x')
 	% ylabel ('y')
-	figure (hDMPA_plot);
+	figure (fDMPA_plot);
 	view ([ 115 20 ]); % Azimuth, Elevation in degrees, 3D view
 	zoom (0.8)
 end
 
-set (0, 'CurrentFigure', hBPP_plot) % hBPP_plotElements DMPA2BPP
+set (0, 'CurrentFigure', fBPP_plot) % hBPP_plotElements DMPA2BPP
 hDMPA__BPP_legendAxes = gca;
 p = hBPP_plotElements;
 PlotView = '2D';
@@ -496,34 +497,34 @@ PlotView = '2D';
 % xlabel ('x')
 % ylabel ('y')
 
-figure (hBPP_plot);
+figure (fBPP_plot);
 view ([   0 90 ]); % Azimuth, Elevation in degrees, std x-y plot
 
 if EDP_dataInRange
 	if Use_OCS_plot
-		set (0, 'CurrentFigure', hDMPA_plot) % hDMPA_plotElements
+		set (0, 'CurrentFigure', fDMPA_plot) % hDMPA_plotElements
 		hDMPA__BPP_legendAxes = gca;
 		p = hDMPA_plotElements;
 		PlotView = '3D'; % flag for ...annotate...
 		MEEdrift_annotate_DMPA_BPP_plots
 
-		figure (hDMPA_plot);
+		figure (fDMPA_plot);
 		view ([ 115 20 ]); % Azimuth, Elevation in degrees, 3D view
 		zoom (0.8)
 	end
 
-	set (0, 'CurrentFigure', hBPP_plot) % hBPP_plotElements DMPA2BPP
+	set (0, 'CurrentFigure', fBPP_plot) % hBPP_plotElements DMPA2BPP
 	hDMPA__BPP_legendAxes = gca;
 	p = hBPP_plotElements;
 	PlotView = '2D';
 	MEEdrift_annotate_DMPA_BPP_plots
 
-	figure (hBPP_plot);
+	figure (fBPP_plot);
 	view ([   0 90 ]); % Azimuth, Elevation in degrees, std x-y plot
 % 	TightFig;
 
 	% Update the EFW data plot index line
-	figure (hEDP_plot);
+	figure (fEDP_plot);
 	axes (hEDP_plot_mainAxes);
 	delete (hEDP_plot_index_line);
 	EDP_dataPlotIndexLine = centerBeam_dn;
@@ -539,7 +540,7 @@ disp ( sprintf ('EDP_dataPlotIndexLine %s', datestr (EDP_dataPlotIndexLine, 'yyy
 % 	MMS_TimeMagSeries {1}  = (edp_t2k (1, iLeftMag_ssm: iRightMag_ssm)) / 86400.0; % make ssm (s) > DateNum (fractional days)
 % 	MMS_DataMagSeries {1}  = edp_E3D_dsl  (:, iLeftMag_ssm: iRightMag_ssm);
 
-% 	if FilterData
+% 	if SmoothData
 % 		MMS_DataMagSeriesf {1} = EFW_L2_E2Df (:, iLeftMag_ssm: iRightMag_ssm);
 % 	else
 % 		MMS_DataMagSeriesf {1} = edp_E3D_dsl (:, iLeftMag_ssm: iRightMag_ssm);

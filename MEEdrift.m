@@ -2,7 +2,7 @@
 MEEdrift_header % Please see the header for important application notes and programming conventions
 
 if ~exist ('Reentrant')
-	Reentrant = false;
+	global Reentrant; Reentrant = false;
 	strReentrant = 'Reentrancy is OFF';
 end
 if ~Reentrant
@@ -10,16 +10,18 @@ if ~Reentrant
 	clc             % clear the command window
 	clear variables
 	close all       % close all figures
-	Reentrant = false; % must be redeclared because it was just cleared
+	global Reentrant; Reentrant = false; % must be redeclared because it was just cleared
 	strReentrant = 'Reentrancy is OFF';
 end
 
 if ~Reentrant % If Reentrant = true, don't run startup dialogs and don't initialize global vars
 	global Project_;             Project_            = 'MMS_EDI_EDP_driftstep';
-	global dotVersion;           dotVersion          = 'v1.01.00';
-	global beamsInWindow;        beamsInWindow       = 8; % n, NOTE !!!! ± beamsInWindow before|after center beam time
+	global dotVersion;           dotVersion          = 'v1.02.00';
+	global beamsWindow;          beamsWindow         = 8; % n, NOTE !!!! ± beamsWindow before|after center beam time
 	global beamWindowSecs;       beamWindowSecs      = 4; % (s), NOTE !!!! ± beamWindowSecs before|after center beam time
+	global ControlPanelActive;   ControlPanelActive  = false; % control panel can be open even if the main menu closes
 	global PlotBeamConvergence;  PlotBeamConvergence = false; % Calculate and plot S* from displayed beams
+	global PlotIntersectDots;    PlotIntersectDots   = false; % Calculate and plot S* from displayed beams
 	global PlotHoldOff;          PlotHoldOff         = true;  % Set to false to plot multiple beam data records on the same plot; true gets but 1
 	global PlotSubplots;         PlotSubplots        = false; % true=plot the data as it is read in; only works for read routines with embedded plot commands
 	global PlotView;             PlotView            = '2D';  % or 3D; the plot is always 3D, but this switches the initial plot display perspective
@@ -30,32 +32,17 @@ if ~Reentrant % If Reentrant = true, don't run startup dialogs and don't initial
 	sinx_wt_Q_xovr_angles = [ 8.0 30 ];
 	global sinx_wt_Q_xovr;       sinx_wt_Q_xovr      = sind (sinx_wt_Q_xovr_angles).^4.0; % breakpoints for quality ranges for sin^x weighting
 
-	RichTest = false; % true false
+	global SmoothData;           SmoothData          = false;
+	global UseSmoothedData;      UseSmoothedData     = false;
+	global SmoothingSpan;        SmoothingSpan       = 33; % Must be odd
+
+	TestMode = false; % true false
 
 	myLibAppConstants
 	% Constants used to calculate beam geometry
 	myLibScienceConstants
 
-	hEDP_plot  = 1;
-	hDMPA_plot = 2;
-	hBPP_plot  = 3;
-	hFFT_plot  = 4;
-
-	% [left, bottom, width, height]
-	hEDP_plot = figure ('Position', [ 0.0*ScreenWidth 0.55*ScreenHeight 0.9*ScreenWidth 0.375*ScreenHeight ]);
-	set (hEDP_plot, 'WindowStyle', 'normal')
-	set (hEDP_plot, 'DockControls', 'off')
-	set (gcf, 'name', 'MMS EDP Ex Ey (mV)', 'NumberTitle', 'off');
-
-	hDMPA_plot = figure ('Position', [ 0.0*ScreenWidth 0.0*ScreenHeight 0.7*ScreenHeight 0.6*ScreenHeight ]);
-	set (hDMPA_plot, 'WindowStyle', 'normal')
-	set (hDMPA_plot, 'DockControls', 'off')
-	set (gcf, 'name', 'Spacecraft and beams in DMPA', 'NumberTitle', 'off');
-
-	hBPP_plot = figure ('Position', [ 0.5*ScreenWidth 0.0*ScreenHeight 0.7*ScreenHeight 0.6*ScreenHeight ]);
-	set (hBPP_plot, 'WindowStyle', 'normal')
-	set (hBPP_plot, 'DockControls', 'off')
-	set (gcf, 'name', 'Spacecraft and beams in BPP', 'NumberTitle', 'off');
+	MEEdrift_create_figures
 
 	% MMS Phase 1 orbits (19 000 to 119 000 kilometres from the planet)
 	% MMS speed @ perigee @ 19000 km ~= 3964 m/s    @ apogee @ 119000 km ~= 1784 m/s
@@ -122,8 +109,8 @@ if ~Reentrant % If Reentrant = true, don't run startup dialogs and don't initial
 
 	if LoadEvent
 	else
-		if RichTest
-			beamsInWindow = 8;
+		if TestMode
+			beamsWindow = 8;
 			UseFileOpenGUI = false;
 
 			mms_ql_dataPath = 'D:\MMS\MATLAB\MEEdrift';
@@ -153,73 +140,55 @@ Selection = 2;
 plotBeamDots = false;
 strSelection    = '> Beam >';
 strPlotBeamDots = 'Plot Beam Dots is OFF';
-strCalc_S_star  = 'Calculate S* is OFF';
+
+global strMainMenu; strMainMenu = '> Beam >'; % 1.02: begin using GUI menu
 
 if ScrollData
-	while ValidDataLoaded && ~strcmp (strSelection, 'Quit')
+	while ValidDataLoaded && ~strcmp (strMainMenu, 'Exit')
 		if ~isempty (strfind ([ ...
 			'< Beam <', ...
 			'> Beam >', ...
-			'Calculate S* is OFF', ...
-			'Calculate S* is ON', ...
-			'Skip via EDP', ...
-			'Plot Beam Dots is OFF', ...
-			'Plot Beam Dots is ON' ], ...
-			strSelection))
+			'Skip via EDP' ], ...
+			strSelection)) % or if plot dots
 			MEEdrift_plot_beams
 		end
 
-		Default_UIControlFontSize = get (0, 'DefaultUIControlFontSize');
-		set (0, 'DefaultUIControlFontSize', 12)
-		ListCaptions = { ...
-			'< Beam <', ...
-			'> Beam >', ...
-			strReentrant, ...
-			strCalc_S_star, ...
-			'Skip via EDP', ...
-			'Save Plots', ...
-			'Save Snapshot', ...
-			'Toggle DMPA <> BPP', ...
-			'FFT plots of EFW x,y', ...
-			strPlotBeamDots};
+% 		Default_UIControlFontSize = get (0, 'DefaultUIControlFontSize');
+% 		set (0, 'DefaultUIControlFontSize', 12)
+% 		ListCaptions = { ...
+% 			'< Beam <', ...
+% 			'> Beam >', ...
+% 			'Skip via EDP', ...
+% 			'Save Plots', ...
+% 			'Save Snapshot', ...
+% 			'Toggle DMPA <> BPP', ...
+% 			'FFT plots of EFW x,y', ...
+% 			strPlotBeamDots};
 
-		[Selection, OK] = listdlg ( ...
-			'Name', '', ...
-			'PromptString', 'Select One Operation', ...
-			'SelectionMode', 'single', ...
-			'CancelString', 'Quit', ...
-			'InitialValue', [Selection], ...
-			'ListSize', [ 220 220 ], ...
-			'ListString', ListCaptions);
+% 		[Selection, OK] = listdlg ( ...
+% 			'Name', '', ...
+% 			'PromptString', 'Select One Operation', ...
+% 			'SelectionMode', 'single', ...
+% 			'CancelString', 'Quit', ...
+% 			'InitialValue', [Selection], ...
+% 			'ListSize', [ 220 220 ], ...
+% 			'ListString', ListCaptions);
+% 		set (0, 'DefaultUIControlFontSize', Default_UIControlFontSize);
 
-		set (0, 'DefaultUIControlFontSize', Default_UIControlFontSize);
-		if OK == 1
-			strSelection = ListCaptions {Selection};
-			switch strSelection
+% 		if OK == 1
+% 			strSelection = ListCaptions {Selection};
+			MEEdrift_main_menu;
+% 			if mainMenuTriggered
+
+			switch strMainMenu
 			  case '< Beam <'
 					iiSorted_beam_t2k = max (1, iiSorted_beam_t2k-1);
 
 				case '> Beam >'
 					iiSorted_beam_t2k = min (nBeams, iiSorted_beam_t2k+1);
 
-				case 'Reentrancy is OFF'
-					Reentrant = true;
-					strReentrant = 'Reentrancy is ON';
-
-				case 'Reentrancy is ON'
-					Reentrant = false;
-					strReentrant = 'Reentrancy is OFF';
-
-				case strCalc_S_star
-					PlotBeamConvergence = ~PlotBeamConvergence;
-					if PlotBeamConvergence
-						strCalc_S_star = 'Calculate S* is ON';
-					else
-						strCalc_S_star = 'Calculate S* is OFF';
-					end
-
 				case 'Skip via EDP'
-					figure (hEDP_plot);
+					figure (fEDP_plot);
 					[edp_timeIndex, mV] = ginput (1); % time axis is in datenum, E-field in mV
 					last_iiSorted_beam_t2k = iiSorted_beam_t2k;
 					if ~isempty (edp_timeIndex)
@@ -244,13 +213,13 @@ if ScrollData
 						'_M', obsID, mms_ql__EDP__dataFile(23:31), '_', ...
 						strBeamTime(12:13), strBeamTime(15:16), strBeamTime(18:23), '_', ...
 						datestr(now, '@yyyymmdd_HHMMSS')];
-					saveas (hEDP_plot,  [ SavePlotFilename, 'a.png' ], 'png');
+					saveas (fEDP_plot,  [ SavePlotFilename, 'a.png' ], 'png');
 					if Use_OCS_plot
-						saveas (hDMPA_plot, [ SavePlotFilename, 'b.png' ], 'png');
+						saveas (fDMPA_plot, [ SavePlotFilename, 'b.png' ], 'png');
 					end
-					saveas (hBPP_plot,  [ SavePlotFilename, 'c.png' ], 'png');
+					saveas (fBPP_plot,  [ SavePlotFilename, 'c.png' ], 'png');
 					if FFTplotted
-						saveas (hFFT_plot, [ SavePlotFilename, 'd.png' ], 'png');
+						saveas (fFFT_plot, [ SavePlotFilename, 'd.png' ], 'png');
 					end
 					disp (['Images saved as     "', SavePlotFilename, '[a|b|c|d].png', '".'])
 					MEEdrift_writeCurrentPlotData
@@ -275,32 +244,24 @@ if ScrollData
 					DSI_view3D = ~DSI_view3D;
 					if DSI_view3D
 						if Use_OCS_plot
-							figure (hDMPA_plot);
+							figure (fDMPA_plot);
 							view ([ 115 20 ]); % Azimuth, Elevation in degrees, 3D view
 						end
 					else % 2D view of BPP
 						% Azimuth, Elevation in degrees, 3D view, based on B DMPA vector
-						figure (hBPP_plot);
+						figure (fBPP_plot);
 						view ([   0 90 ]); % Azimuth, Elevation in degrees, std x-y plot
 						% view ([ 42 58 ])
 						%	view ([ atand(abs(centerBeamB_u(2)/centerBeamB_u(1))) acosd(centerBeamB_u(3))-90.0 ]);
 					end
 
-				case 'FFT plots of EFW x,y'
+				case 'Plot EDP FFT x,y'
 					MEEdrift_FFT_MMS_EFW_data
 
-				case 'Plot Beam Dots is OFF'
-					plotBeamDots = true;
-					strPlotBeamDots = 'Plot Beam Dots is ON';
-
-				case 'Plot Beam Dots is ON'
-					plotBeamDots = false;
-					strPlotBeamDots = 'Plot Beam Dots is OFF';
-
 			end % switch strSelection
-		else % if OK == 1
-			strSelection = 'Quit';
-		end
+% 		else % if OK == 1
+% 			strSelection = 'Quit';
+% 		end
 	end % while ValidDataLoaded && ~strcmp (strSelection, 'Quit')
 
 	hold off

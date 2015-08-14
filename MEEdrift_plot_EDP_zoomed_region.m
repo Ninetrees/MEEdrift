@@ -13,8 +13,8 @@ end
 
 zoomTimeSeries {1} = edp_dn (edp_zoomStart: edp_zoomEnd);
 zoomDataSeries {1} = edp_E3D_dsl (:, edp_zoomStart: edp_zoomEnd);
-if FilterData
-	zoomDataSeriesf {1} = edp_E3D_dslf (:, edp_zoomStart: edp_zoomEnd);
+if SmoothData
+	zoomDataSeriesf {1} = edp_E3D_dsl_s (:, edp_zoomStart: edp_zoomEnd);
 else
 	zoomDataSeriesf {1} = edp_E3D_dsl (:, edp_zoomStart: edp_zoomEnd);
 end
@@ -24,8 +24,8 @@ hEDP_plotZoom = plot (hEDP_subplot_zoomAxes, ...
 	zoomTimeSeries {1}, zoomDataSeriesf {1}, ...
 	'LineStyle', '-', 'Marker', '.', 'MarkerSize', 2);
 
-zoom_dateStart = timeSeries {1} (edp_zoomStart);
-zoom_dateEnd   = timeSeries {1} (edp_zoomEnd);
+zoom_dateStart = zoomTimeSeries {1} (1);
+zoom_dateEnd   = zoomTimeSeries {1} (200);
 xlim ([zoom_dateStart zoom_dateEnd]);
 xTickData = linspace (zoom_dateStart, zoom_dateEnd, 5);
 set (gca, 'XTick', xTickData);

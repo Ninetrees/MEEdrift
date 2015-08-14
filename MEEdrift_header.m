@@ -2,6 +2,15 @@
 	Name: MEEdrift
 	Description: Correct EFW E-field measurements based on EDI measurements
 
+	2015-08-14 ~ v01.02.00:
+	 ~ Some code files were getting too busy. Split off logical code blocks.
+	 ~ Implemented smoothing: implemented edp_E3D_dsl, edp_E3D_dsl_r, edp_E3D_dsl_s.
+	   See code notes for usage.
+	 ~ Add GUI panel for main menu, replacing listbox.
+	 ~ Add GUI panel for global options: Reentrant, PlotCOnvergence, etc.,
+	   replacing need to edit program before each run, and eliminating need for
+	   configuration files.
+
 	2015-08-12 ~ v01.01.00:
 	 ~ MEEdrift plots S* from the EDI data file. Add S* plot from selected beams.
 	   Make it menu-selectable.

@@ -1,73 +1,29 @@
-% MEEdrift_plot_EDP_data
-% disp 'MEEdrift_plot_EDP_data' % V&V
-	% Quality Meaning
-	% 0 Bad data
-	% 1 Known problems, use at your own risk
-	% 2 Survey data, possibly not publication-quality
-	% 3 Good for publication, subject to PI approval
-	% 4 Excellent data which has received special treatment
-
-	% ------------- begin any changes to edp_E3D_dsl
-% swap x, y for testing
-% 	edp_E3D_dslt      = edp_E3D_dsl (:,1);
-% 	edp_E3D_dsl (:,1) = edp_E3D_dsl (:,2);
-% 	edp_E3D_dsl (:,2) = edp_E3D_dslt;
-% 	edp_E3D_dsl (:,1) = edp_E3D_dsl (:,1) + 0.5;
-
-	% Note E-field values are in the ISR2 (DSI) spin plane. The spin axis component is not available,
-	% so the resulting measurement is not the full 3D electric field vector. ISR2 has the same 'sense' as GSE.
-	% if CDF_FileInfo.FileSettings.Majority = 'Row' then transpose.
-
-	% If you want to make changes to the EFW data, and see that plotted, make those changes here.
-	% At this point, edp_E3D_dsl is n x 2.
-	% Construct blurring window.
-% 	windowWidth = int16 (5);
-% 	halfWidth = windowWidth / 2;
-% 	gaussFilter = gausswin (5);
-% 	gaussFilter = gaussFilter / sum (gaussFilter); % Normalize.
-	% Do the blur.
-	% smoothedVector = conv (vector, gaussFilter);
-% 	edp_E3D_dsl_DSIx = conv (edp_E3D_dsl (:, 1), gaussFilter);
-% 	edp_E3D_dsl_DSIy = conv (edp_E3D_dsl (:, 2), gaussFilter);
+% MEEdrift_smoothing
+% disp 'MEEdrift_smoothing' % V&V
 
 % RecursiveMovingAverageFilter: Filter size should be odd > 1
 % RecursiveMovingAverageFilter: Expects a col of values, n x 1
-% To see both raw and smoothed data on the same plot, be sure to assign the smoothed data to edp_E3D_dsl_s,
-% and set PlotRawAndSmoothed = true below. To see only the smoothed data, simply assign it back to edp_E3D_dsl as above.
-SmoothData = false;
+% To see both raw and smoothed data on the same plot,
+% be sure to assign the smoothed data to edp_E3D_dsl_s,
+% and set PlotRawAndSmoothed = true below. To see only the smoothed data,
+% simply assign it back to edp_E3D_dsl as above.
+
 % You can choose to plot it and use it, or just display it.
 UseSmoothedData = false; % triggers edp_E3D_dsl <> edp_E3D_dsl_s swap below
+
+change edp data to edp_raw, and assign either edp_raw or edp_s (smoothed) to edp
+
 if SmoothData
-	edp_E3D_dsl = edp_E3D_dsl';
-	edp_E3D_dsl_s (:,1) = RecursiveMovingAverageFilter (edp_E3D_dsl (:,1), 9); % filter
-	edp_E3D_dsl_s (:,2) = RecursiveMovingAverageFilter (edp_E3D_dsl (:,2), 9); % filter
-	edp_E3D_dsl_s (:,3) = RecursiveMovingAverageFilter (edp_E3D_dsl (:,3), 9); % filter
-	edp_E3D_dsl_s = edp_E3D_dsl_s'; % Transpose -> 3 x n matrix % filter
-	edp_E3D_dsl  = edp_E3D_dsl';
-end
+	% _r here is nx3, which works well for plotting and matrix searches
+	edp_E3D_dsl_s (:,1) = RecursiveMovingAverageFilter (edp_E3D_dsl_r (:,1), 9); % filter
+	edp_E3D_dsl_s (:,2) = RecursiveMovingAverageFilter (edp_E3D_dsl_r (:,2), 9); % filter
+	edp_E3D_dsl_s (:,3) = RecursiveMovingAverageFilter (edp_E3D_dsl_r (:,3), 9); % filter
 
-% edp_E3D_dsl (:, 1) = smooth (edp_E3D_dsl (:,1), 11); % filter
-% edp_E3D_dsl (:, 2) = smooth (edp_E3D_dsl (:,2), 11); % filter
-% edp_E3D_dsl         = edp_E3D_dsl'; % Transpose -> 2 x n matrix
-
-% disp (['nEDP = ', num2str(nEDP)]);
-
-if UseSmoothedData
-	disp 'swapping raw <> filtered data'
-	edp_E3D_dslt = edp_E3D_dsl; % filter
-	edp_E3D_dsl  = edp_E3D_dsl_s; % filter
-	edp_E3D_dsl_s = edp_E3D_dslt; % filter
-	clear edp_E3D_dslt
-	if false % never execute... just for documenting steps
-		% to refilter from original, if this option was used... remember, they are TRANSPOSED and SWAPPED
-		edp_E3D_dsl_s = edp_E3D_dsl_s'; % this is the original data
-		clear edp_E3D_dsl            % clear the filtered data
-		edp_E3D_dsl (:,1) = RecursiveMovingAverageFilter (edp_E3D_dsl_s (:,1), 9); % Choose a new filter step
-		edp_E3D_dsl (:,2) = RecursiveMovingAverageFilter (edp_E3D_dsl_s (:,2), 9); % on BOTH lines
-		edp_E3D_dsl (:,3) = RecursiveMovingAverageFilter (edp_E3D_dsl_s (:,3), 9); % on BOTH lines
-		edp_E3D_dsl  = edp_E3D_dsl';   % transpose both back to col vectors
-		edp_E3D_dsl_s = edp_E3D_dsl_s';
+	if UseSmoothedData
+		disp 'Using smoothed EDP data'
+		edp_E3D_dsl  = edp_E3D_dsl_s'; % transpose it for math
 	end
+	% plot the smoothed data for comparison... done in plot_EDP_data and plot_EDP_zoomed_data
 end
 
 % Calculate ssm (seconds since midnight) from L2 epoch16, 2xn in Windows
@@ -96,7 +52,7 @@ edp_plotStart = 1;
 edp_plotEnd   = nEDP;
 %   edp_E3D_dsl  (2,:) = edp_E3D_dsl  (1,:);
 %   edp_E3D_dsl_s  (2,:) = edp_E3D_dsl_s  (1,:);
-timeSeries {1} = edp_dn (edp_plotStart: edp_plotEnd)';
+timeSeries {1}  = edp_dn (edp_plotStart: edp_plotEnd)';
 MMS_DataSeries {1}  = edp_E3D_dsl  (:, edp_plotStart: edp_plotEnd);
 if SmoothData
 	dataSeriesf {1} = edp_E3D_dsl_s (:, edp_plotStart: edp_plotEnd);

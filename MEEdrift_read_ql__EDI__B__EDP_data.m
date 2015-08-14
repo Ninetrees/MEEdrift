@@ -234,7 +234,7 @@ if ~isequal (mms_ql__EDI__BdvE__dataFile, 0) % then a valid [we hope] file selec
 		mms_ql_EDP_fileInfo = spdfcdfinfo (mms_ql__EDP_data);
 		dce_xyz_dsl_varInfo = CDF_varInfo (mms_ql_EDP_fileInfo, ['mms', obsID, '_edp_dce_xyz_dsl']);
 		dce_xyz_dsl_fillVal = dce_xyz_dsl_varInfo.fillVal;
-% keyboard
+
 		% ~~~~~~~~~~~~~~~~~~~ DC E-field
 		edp_t2k = spdfcdfread (mms_ql__EDP_data, ...
 			'CombineRecords',        true, ...
@@ -242,15 +242,18 @@ if ~isequal (mms_ql__EDI__BdvE__dataFile, 0) % then a valid [we hope] file selec
 			'ConvertEpochToDatenum', false, ...
 			'KeepEpochAsIs',         true);
 		% Electric field in DSL coordinates (DSL ~= DMPA ~= DBCS)
-		edp_E3D_dsl = spdfcdfread (mms_ql__EDP_data, ...
+		% _r here means raw; cf. _s later for smoothed
+		% edp_E3D_dsl is assigned either _r or _s, depending on user choice
+		% edp_E3D_dsl is what is used for calcs; see below for first assignment
+		edp_E3D_dsl_r = spdfcdfread (mms_ql__EDP_data, ...
 			'CombineRecords',        true, ...
 			'Variable',              ['mms', obsID, '_edp_dce_xyz_dsl']);
 		edp_E3D_Q = spdfcdfread (mms_ql__EDP_data, ...
 			'CombineRecords',        true, ...
 			'Variable',              ['mms', obsID, '_edp_dce_quality']);
 
-		idceFillVal = find (edp_E3D_dsl (:, 1) == dce_xyz_dsl_fillVal);
-		edp_E3D_dsl (idceFillVal, :) = [];
+		idceFillVal = find (edp_E3D_dsl_r (:, 1) == dce_xyz_dsl_fillVal);
+		edp_E3D_dsl_r (idceFillVal, :) = [];
 		edp_t2k     (idceFillVal)    = [];
 		edp_E3D_Q   (idceFillVal)    = [];
 
@@ -266,12 +269,13 @@ if ~isequal (mms_ql__EDI__BdvE__dataFile, 0) % then a valid [we hope] file selec
 		iEDP_gt_EDI = find (edp_dn > BdvE_dn (end));
 		iEDP_EDI_noMatch = union (iEDP_lt_EDI, iEDP_gt_EDI);
 
-		edp_E3D_dsl (iEDP_EDI_noMatch, :) = [];
-		edp_t2k     (iEDP_EDI_noMatch) = [];
-		edp_E3D_Q   (iEDP_EDI_noMatch) = [];
-		edp_dn      (iEDP_EDI_noMatch) = [];
+		edp_E3D_dsl_r (iEDP_EDI_noMatch, :) = [];
+		edp_t2k       (iEDP_EDI_noMatch) = [];
+		edp_E3D_Q     (iEDP_EDI_noMatch) = [];
+		edp_dn        (iEDP_EDI_noMatch) = [];
 
-		edp_E3D_dsl = edp_E3D_dsl';
+		% edp_E3D_dsl assigned edp_E3D_dsl_r as first choice for calcs
+		edp_E3D_dsl = edp_E3D_dsl_r';
 % 		edp_E3D_Q   = edp_E3D_Q;
 % 		edp_dn      = edp_dn;
 
