@@ -21,7 +21,7 @@
    The point of the unit vectors to show that it all makes sense.
 %}
 format short g  % +, bank, hex, long, long g, rat, short, short g, short eng
-fclose all;     % nothing should be open, but if an error occurs during reentrancy, this should handle any hanging open file handles
+fclose all;     % nothing should be open, but this should handle any hanging open file handles
 
 beamIntercepts     = zeros (2, (9*10)/2, 'double'); % each beam intersects every other beam; assumes center beam + 4 on either side
 edp_E_EdB_BPP      = zeros (3, 1, 'double'); % pre-allocate for debugging
@@ -32,7 +32,7 @@ nTargetBeams       = uint32 (0);
 targetBeamsGDU_Loc = zeros (3, 20, 'double'); % needs to be high enough for max expected beam count
 targetBeamAngle    = zeros (3, 20, 'double'); % needs to be high enough for max expected beam count
 S_star_beams_m_bpp = zeros (1, 20, 'double');
-S_star_beams_b_bpp    = zeros (1, 20, 'double');
+S_star_beams_b_bpp = zeros (1, 20, 'double');
 
 if Use_OCS_plot
 	set (0, 'CurrentFigure', fDMPA_plot) % hDMPA_plotElements
@@ -49,7 +49,7 @@ disp '---'
 % iCenterBeam is an index, not a time; points to the center beam used for calculations
 iCenterBeam = iSorted_beam_t2k (iiSorted_beam_t2k);
 % index to B_dmpa B-field record that matches this CenterBeam EDI record
-edi_BdvE_recnum = edi_xref2_BdvE (iCenterBeam);
+edi_BdvE_recnum = gd_xref2_BdvE (iCenterBeam);
 iedi_BdvE_dmpa  = find (BdvE_xref2_edi == edi_BdvE_recnum);
 
 centerBeamB    = edi_B_dmpa (:, iedi_BdvE_dmpa);
@@ -57,8 +57,8 @@ centerBeamB2n  = norm (centerBeamB, 2);
 centerBeamB_u  = centerBeamB / centerBeamB2n; % unit vector
 centerBeamE    = edi_E_dmpa (:, iedi_BdvE_dmpa);
 centerBeamEu   = centerBeamE / norm (centerBeamE, 2);
-centerBeam_dn  = edi_gd_beam_dn (iCenterBeam);
-centerBeam_t2k = edi_gd_beam_t2k (iCenterBeam);
+centerBeam_dn  = gd_beam_dn (iCenterBeam);
+centerBeam_t2k = gd_beam_t2k (iCenterBeam);
 disp ([ 'Center beam time:  ', char(spdfencodett2000(centerBeam_t2k)) ]) % V&V
 
 % virtual source S* == -(drift step) :: drift step ~> drift velocity ~> drift E
@@ -205,7 +205,7 @@ for BeamBracketIndex = (iiSorted_beam_t2k - beamsWindow) : (iiSorted_beam_t2k + 
 	% BeamBracketIndex is uint32, so can't be < 0; just check for max size
 	if ((BeamBracketIndex > 0) & (BeamBracketIndex < nBeams)) % catch array edge faults
 	  iBeam = iSorted_beam_t2k (BeamBracketIndex);
-		if (abs (centerBeam_t2k - edi_gd_beam_t2k (iBeam)) < (beamWindowSecs * 1e9)) % s ~> ns
+		if (abs (centerBeam_t2k - gd_beam_t2k (iBeam)) < (beamWindowSecs * 1e9)) % s ~> ns
 			GDU_ID = edi_gd_ID (iBeam);
 		  if iBeam == iCenterBeam
 		    BeamColor = 'red';
@@ -227,8 +227,8 @@ for BeamBracketIndex = (iiSorted_beam_t2k - beamsWindow) : (iiSorted_beam_t2k + 
 
 			GDU_LocBPP = DMPA2BPP * GDU_Loc;
 			set (0, 'CurrentFigure', fBPP_plot) % hBPP_plotElements DMPA2BPP
-			disp (sprintf ('GDU: %d edi_gd_beam_t2k: %s x: %4.1f y: %4.1f', ...
-				GDU_ID, datestr (edi_gd_beam_dn (iBeam), 'yyyy-mm-dd HH:MM:SS.fff'), ...
+			disp (sprintf ('GDU: %d gd_beam_t2k: %s x: %4.1f y: %4.1f', ...
+				GDU_ID, datestr (gd_beam_dn (iBeam), 'yyyy-mm-dd HH:MM:SS.fff'), ...
 				GDU_LocBPP (1), GDU_LocBPP (2) ))
 			if GDU_ID == 1
 				hBPP_plotElements (3) = plot3 (GDU_LocBPP (1), GDU_LocBPP (2), GDU_LocBPP (3), 'LineStyle', 'none', ...
@@ -334,7 +334,7 @@ for BeamBracketIndex = (iiSorted_beam_t2k - beamsWindow) : (iiSorted_beam_t2k + 
 
 				% Perform E·B = 0 in 3D to get the full EFW perp vector in DMPA (need z-axis)
 				% Find 2 EFW records whose ssm brackets the center beam; interpolate the E-fields wrt ssm
-				iEDP_t2kHI = find ((edp_t2k - edi_gd_beam_t2k (iBeam)) > 0.0, 1); % First edp_t2k > center beam time
+				iEDP_t2kHI = find ((edp_t2k - gd_beam_t2k (iBeam)) > 0.0, 1); % First edp_t2k > center beam time
 
 				% EFW L2 ssm must be close enough to beam time to be useful
 				% We don't want to interpolate over more than 0.1 s.
@@ -342,7 +342,7 @@ for BeamBracketIndex = (iiSorted_beam_t2k - beamsWindow) : (iiSorted_beam_t2k + 
 				% tt2000 is in ns: 0.1s ~> 1e8 ns. Because there are potentially
 				% ~13 records in this amount of time, there is no loss of generality
 				% seting the limit at 0.1s.
-				if abs ((edp_t2k (iEDP_t2kHI) - edi_gd_beam_t2k (iBeam)) < 1.0e8)
+				if abs ((edp_t2k (iEDP_t2kHI) - gd_beam_t2k (iBeam)) < 1.0e8)
 					iEDP_t2kLO = iEDP_t2kHI - 1; % First edp_t2k < center beam time
 					if iEDP_t2kLO == 0 % We must bump this if we are looking at the first record... maybe we should start @ 2?
 						iEDP_t2kLO = 1;
@@ -525,13 +525,13 @@ if EDP_dataInRange
 
 	% Update the EFW data plot index line
 	figure (fEDP_plot);
-	axes (hEDP_plot_mainAxes);
+	axes (hEDP_mainAxes);
 	delete (hEDP_plot_index_line);
 	EDP_dataPlotIndexLine = centerBeam_dn;
 disp ( sprintf ('EDP_dataPlotIndexLine %s', datestr (EDP_dataPlotIndexLine, 'yyyy-mm-dd HH:MM:ss.fff') ) ) % V&V
 % 	datestr (centerBeam_dn, 'yyyy-mm-dd HH:MM:ss.fff') % V&V
 	hold on
-	hEDP_plot_index_line = line ( [EDP_dataPlotIndexLine EDP_dataPlotIndexLine], get (hEDP_plot_mainAxes, 'YLim'), 'Color', 'red' , 'LineStyle', '-' , 'LineWidth', 2);
+	hEDP_plot_index_line = line ( [EDP_dataPlotIndexLine EDP_dataPlotIndexLine], get (hEDP_mainAxes, 'YLim'), 'Color', 'red' , 'LineStyle', '-' , 'LineWidth', 2);
 
 	% update EFWplotMagnifier here
 % 	iLeftMag_ssm  = max (1,                  find (edp_t2k >= (BdvE_dn - 4.0), 1) );

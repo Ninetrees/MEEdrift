@@ -8,7 +8,7 @@ fprintf (PlotLogFileID, '%s\n', mms_ql__EDI__BdvE__dataFile);
 fprintf (PlotLogFileID, '%s\n', mms_ql__EDP__dataFile);
 
 fprintf (PlotLogFileID, 'Beam record      : %d\n', iCenterBeam);
-fprintf (PlotLogFileID, 'edi_gd_beam_t2k  : %d\n', centerBeam_t2k);
+fprintf (PlotLogFileID, 'gd_beam_t2k      : %d\n', centerBeam_t2k);
 strCenterBeam = datestr (centerBeam_dn, 'yyyy-mm-dd HH:MM:ss.fff')
 fprintf (PlotLogFileID, 'Beam time        : %s\n', strCenterBeam);
 
@@ -22,7 +22,7 @@ if S_star_dmpa (1) ~= -edi_d_dmpa_fillVal % S* is the negative of the drift step
 else
 	fprintf (PlotLogFileID, 'S* BPP (converge): %g %g %g\n', S_star_dmpa);
 end
-fprintf (PlotLogFileID, 'Gyrofreq, period: %g Hz %g s\n', gyroFrequency, gyroPeriod);
+fprintf (PlotLogFileID, 'Gyrofreq, period : %g Hz %g s\n', gyroFrequency, gyroPeriod);
 fprintf (PlotLogFileID, 'DMPA2BPP\n');
 fprintf (PlotLogFileID, '%16.13f %16.13f %16.13f\n', DMPA2BPP);
 

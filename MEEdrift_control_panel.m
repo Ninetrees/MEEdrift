@@ -1,51 +1,72 @@
-function varargout = MEEdrift_control_panel(varargin)
-% MEEDRIFT_CONTROL_PANEL MATLAB code for MEEdrift_control_panel.fig
-%      MEEDRIFT_CONTROL_PANEL, by itself, creates a new MEEDRIFT_CONTROL_PANEL or raises the existing
-%      singleton*.
+function varargout = MEEdrift_control_panel (varargin)
+% MEEdrift_main_menu MATLAB code for MEEdrift_main_menu.fig
+%   MEEdrift_main_menu, by itself, creates a new MEEDRIFT_MAIN_MENU or raises
+%   the existing singleton*.
 %
-%      H = MEEDRIFT_CONTROL_PANEL returns the handle to a new MEEDRIFT_CONTROL_PANEL or the handle to
-%      the existing singleton*.
 %
-%      MEEDRIFT_CONTROL_PANEL('CALLBACK',hObject,eventData,handles,...) calls the local
-%      function named CALLBACK in MEEDRIFT_CONTROL_PANEL.M with the given input arguments.
+%   MEEdrift_main_menu ('CALLBACK', hObject, eventData, handles, ...) calls the local
+%   function named CALLBACK in MEEdrift_main_menu.m, with the given input arguments.
 %
-%      MEEDRIFT_CONTROL_PANEL('Property','Value',...) creates a new MEEDRIFT_CONTROL_PANEL or raises the
-%      existing singleton*.  Starting from the left, property value pairs are
-%      applied to the GUI before MEEdrift_control_panel_OpeningFcn gets called.  An
-%      unrecognized property name or invalid value makes property application
-%      stop.  All inputs are passed to MEEdrift_control_panel_OpeningFcn via varargin.
+%   MEEdrift_main_menu ('Property', 'Value', ...) creates a new MEEdrift_main_menu or
+%   raises the existing singleton*. Starting from the left, property value pairs are
+%   applied to the GUI before MEEdrift_main_menu_OpeningFcn gets called.
+%   An unrecognized property name or invalid value makes property application
+%   stop. All inputs are passed to MEEdrift_main_menu_OpeningFcn via varargin.
 %
-%      *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
-%      instance to run (singleton)".
+%   ~~~~~~~~~~~~~~~~~~~
+%   When MEEdrift_main_menu is created,
+%   UIWAIT makes MEEdrift_main_menu wait for user response (see UIRESUME).
+%   uiwait (handles.fig_MEEdrift_MainMenu);
+%   MEEdrift_main_menu is in a while loop that contains logic similar to
+%
+%   while SomeTestIsTrue
+%     MEEdrift_main_menu;
+%     switch strMainMenu
+%       case '< Beam <'
+%         ...
+%     end
+%   end
+%
+%   A typical callback takes appropriate actions, and triggers uiresume.
+%   function uic_pbBeamPrev_Callback (hObject, eventdata, handles)
+%     global strMainMenu;
+%     strMainMenu = '< Beam <';
+%     uiresume (gcbf);
+%   end
+%
+%   The logic that triggered MEEdrift_main_menu then takes appropriate action.
+%
+%   *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
+%   instance to run (singleton)".
 %
 % See also: GUIDE, GUIDATA, GUIHANDLES
 
 % Edit the above text to modify the response to help MEEdrift_control_panel
 
-% Last Modified by GUIDE v2.5 14-Aug-2015 09:35:50
+% Last Modified by GUIDE v2.5 28-Aug-2015 08:56:38
 
 % Begin initialization code - DO NOT EDIT
 	gui_Singleton = 1;
-	gui_State = struct('gui_Name',       mfilename, ...
+	gui_State = struct ('gui_Name',      mfilename, ...
 	                   'gui_Singleton',  gui_Singleton, ...
 	                   'gui_OpeningFcn', @MEEdrift_control_panel_OpeningFcn, ...
 	                   'gui_OutputFcn',  @MEEdrift_control_panel_OutputFcn, ...
 	                   'gui_LayoutFcn',  [] , ...
 	                   'gui_Callback',   []);
-	if nargin && ischar(varargin{1})
-	    gui_State.gui_Callback = str2func(varargin{1});
+	if nargin && ischar (varargin{1})
+		gui_State.gui_Callback = str2func (varargin{1});
 	end
 
 	if nargout
-	    [varargout{1:nargout}] = gui_mainfcn(gui_State, varargin{:});
+	  [varargout{1:nargout}] = gui_mainfcn (gui_State, varargin{:});
 	else
-	    gui_mainfcn(gui_State, varargin{:});
+	  gui_mainfcn (gui_State, varargin{:});
 	end
-% End initialization code - DO NOT EDIT
-
+  % End initialization code - DO NOT EDIT
+end
 
 % --- Executes just before MEEdrift_control_panel is made visible.
-function MEEdrift_control_panel_OpeningFcn(hObject, eventdata, handles, varargin)
+function MEEdrift_control_panel_OpeningFcn (hObject, eventdata, handles, varargin)
 	% This function has no output args, see OutputFcn.
 	% varargin   command line arguments to MEEdrift_control_panel (see VARARGIN)
 
@@ -63,11 +84,14 @@ function MEEdrift_control_panel_OpeningFcn(hObject, eventdata, handles, varargin
 	global beamWindowSecs;
 	global PlotBeamConvergence;
 	global PlotIntersectDots;
-	global Reentrant;
 	global SmoothData;
 	global SmoothingSpan;
 	global UseSmoothedData;
 	global Use_OCS_plot;
+	global EDPx_offset;
+	global EDPy_offset;
+	global EDPz_offset;
+	global EDP_plot_ylim;
 
 	fControlPanel = hObject;
 	set (handles.uic_txtTitle, 'String', [ 'MEEdrift ' dotVersion ]);
@@ -75,66 +99,31 @@ function MEEdrift_control_panel_OpeningFcn(hObject, eventdata, handles, varargin
 	set (handles.uic_eBeamWindowSecs, 'String', num2str (beamWindowSecs));
 	set (handles.uic_cbPlotBeamConvergence, 'Value', PlotBeamConvergence);
 	set (handles.uic_cbPlotIntersectDots, 'Value', PlotIntersectDots);
-	set (handles.uic_cbReentrant, 'Value', Reentrant);
 	set (handles.uic_cbSmoothData, 'Value', SmoothData);
 	set (handles.uic_eSmoothingSpan, 'String', num2str (SmoothingSpan));
 	set (handles.uic_cbUseSmoothedData, 'Value', UseSmoothedData);
 	set (handles.uic_cbUse_OCS_plot, 'Value', Use_OCS_plot);
+	set (handles.uic_eEDPx_Offset, 'String', num2str (EDPx_offset));
+	set (handles.uic_eEDPy_Offset, 'String', num2str (EDPy_offset));
+	set (handles.uic_eEDPz_Offset, 'String', num2str (EDPz_offset));
+	set (handles.uic_eEDP_plot_ylim, 'String', num2str (EDP_plot_ylim));
 
 	% UIWAIT makes MEEdrift_control_panel wait for user response (see UIRESUME)
-	% uiwait(handles.figure1);
+	% uiwait (handles.figure1);
+end
 
 % ~~~~~~~~~~~~~~~~~~~
 % --- Outputs from this function are returned to the command line.
-function varargout = MEEdrift_control_panel_OutputFcn(hObject, eventdata, handles)
+function varargout = MEEdrift_control_panel_OutputFcn (hObject, eventdata, handles)
 	% varargout  cell array for returning output args (see VARARGOUT);
 	% Get default command line output from handles structure
 	varargout{1} = handles.output;
-
-% ~~~~~~~~~~~~~~~~~~~
-function uic_pbClose_Callback (hObject, eventdata, handles)
-	% hObject    handle to uic_pbClose (see GCBO)
-	global ControlPanelActive;
-	ControlPanelActive = false;
-	close (gcf);
-
-% ~~~~~~~~~~~~~~~~~~~
-function uic_cbReentrant_Callback (hObject, eventdata, handles)
-	% hObject    handle to uic_cbReentrant (see GCBO)
-	% Hint: get(hObject,'Value') returns toggle state of uic_cbReentrant
-	global Reentrant;
-	Reentrant = ~Reentrant;
-	set (handles.uic_cbReentrant, 'Value', Reentrant);
-
-% ~~~~~~~~~~~~~~~~~~~
-function uic_cbPlotBeamConvergence_Callback (hObject, eventdata, handles)
-	% hObject    handle to uic_cbPlotBeamConvergence (see GCBO)
-	% Hint: get(hObject,'Value') returns toggle state of uic_cbPlotBeamConvergence
-	global PlotBeamConvergence;
-	PlotBeamConvergence = ~PlotBeamConvergence;
-	set (handles.uic_cbPlotBeamConvergence, 'Value', PlotBeamConvergence);
-
-% ~~~~~~~~~~~~~~~~~~~
-function uic_cbSmoothData_Callback (hObject, eventdata, handles)
-	% hObject    handle to uic_cbSmoothData (see GCBO)
-	% Hint: get(hObject,'Value') returns toggle state of uic_cbSmoothData
-	global SmoothData;
-	SmoothData = ~SmoothData;
-	set (handles.uic_cbSmoothData, 'Value', SmoothData);
-
-% ~~~~~~~~~~~~~~~~~~~
-function uic_cbUseSmoothedData_Callback (hObject, eventdata, handles)
-	% hObject    handle to uic_cbUseSmoothedData (see GCBO)
-	% Hint: get(hObject,'Value') returns toggle state of uic_cbUseSmoothedData
-	global UseSmoothedData;
-	UseSmoothedData = ~UseSmoothedData;
-	set (handles.uic_cbUseSmoothedData, 'Value', UseSmoothedData);
+end
 
 % ~~~~~~~~~~~~~~~~~~~
 function uic_eBeamsWindow_Callback (hObject, eventdata, handles)
-	% hObject    handle to uic_eBeamsWindow (see GCBO)
-	% Hints: get(hObject,'String') returns contents of uic_eBeamsWindow as text
-%        str2double(get(hObject,'String')) returns contents of uic_eBeamsWindow as a double
+	% Hints: get (hObject, 'String') returns contents of uic_eBeamsWindow as text
+%        str2double (get (hObject, 'String')) returns contents of uic_eBeamsWindow as a double
 	str = get (hObject, 'String');
 	if ismember (str, '45678')
 		n = str2double (str)
@@ -145,21 +134,20 @@ function uic_eBeamsWindow_Callback (hObject, eventdata, handles)
 			warndlg ('Beam Window count must be [4-8].');
 		end
 	end
+end
 
 % ~~~~~~~~~~~~~~~~~~~
 % --- Executes during object creation, after setting all properties.
-function uic_eBeamsWindow_CreateFcn(hObject, eventdata, handles)
-	% hObject    handle to uic_eBeamsWindow (see GCBO)
-	%       See ISPC and COMPUTER.
+function uic_eBeamsWindow_CreateFcn (hObject, eventdata, handles)
 	if ispc && isequal (get (hObject, 'BackgroundColor'), get (0, 'defaultUicontrolBackgroundColor'))
 	    set (hObject, 'BackgroundColor', 'white');
 	end
+end
 
 % ~~~~~~~~~~~~~~~~~~~
 function uic_eBeamWindowSecs_Callback (hObject, eventdata, handles)
-	% hObject    handle to uic_eBeamWindowSecs (see GCBO)
-	% Hints: get(hObject,'String') returns contents of uic_eBeamWindowSecs as text
-	%        str2double(get(hObject,'String')) returns contents of uic_eBeamWindowSecs as a double
+	% Hints: get (hObject, 'String') returns contents of uic_eBeamWindowSecs as text
+	%        str2double (get (hObject, 'String')) returns contents of uic_eBeamWindowSecs as a double
 	str = get (hObject, 'String');
 	if ismember (str, '1234')
 		n = str2double (str)
@@ -170,52 +158,187 @@ function uic_eBeamWindowSecs_Callback (hObject, eventdata, handles)
 			warndlg ('Beam Window seconds must be [1-4].');
 		end
 	end
+end
 
 % ~~~~~~~~~~~~~~~~~~~
 % --- Executes during object creation, after setting all properties.
-function uic_eBeamWindowSecs_CreateFcn(hObject, eventdata, handles)
-	% hObject    handle to uic_eBeamWindowSecs (see GCBO)
-	%       See ISPC and COMPUTER.
+function uic_eBeamWindowSecs_CreateFcn (hObject, eventdata, handles)
 	if ispc && isequal (get (hObject, 'BackgroundColor'), get (0, 'defaultUicontrolBackgroundColor'))
 	    set (hObject, 'BackgroundColor', 'white');
 	end
+end
 
 % ~~~~~~~~~~~~~~~~~~~
-function uic_cbUse_OCS_plot_Callback(hObject, eventdata, handles)
-	% hObject    handle to uic_cbUse_OCS_plot (see GCBO)
-	% Hint: get(hObject,'Value') returns toggle state of uic_cbUse_OCS_plot
-	global Use_OCS_plot;
-	Use_OCS_plot = ~Use_OCS_plot;
-	set (handles.uic_cbUse_OCS_plot, 'Value', Use_OCS_plot);
+function uic_pbClose_Callback (hObject, eventdata, handles)
+	global ControlPanelActive;
+	ControlPanelActive = false;
+	close (gcf);
+end
 
 % ~~~~~~~~~~~~~~~~~~~
-function uic_cbPlotIntersectDots_Callback(hObject, eventdata, handles)
-	% hObject    handle to uic_cbPlotIntersectDots (see GCBO)
-	% Hint: get (hObject,'Value') returns toggle state of uic_cbPlotIntersectDots
+function uic_cbPlotBeamConvergence_Callback (hObject, eventdata, handles)
+	% Hint: get (hObject, 'Value') returns toggle state of uic_cbPlotBeamConvergence
+	global PlotBeamConvergence;
+	PlotBeamConvergence = ~PlotBeamConvergence;
+	set (handles.uic_cbPlotBeamConvergence, 'Value', PlotBeamConvergence);
+end
+
+% ~~~~~~~~~~~~~~~~~~~
+function uic_cbPlotIntersectDots_Callback (hObject, eventdata, handles)
+	% Hint: get (hObject, 'Value') returns toggle state of uic_cbPlotIntersectDots
 	global PlotIntersectDots;
 	PlotIntersectDots = ~PlotIntersectDots;
 	set (handles.uic_cbPlotIntersectDots, 'Value', PlotIntersectDots);
+end
 
 % ~~~~~~~~~~~~~~~~~~~
-function uic_eSmoothingSpan_Callback(hObject, eventdata, handles)
-	% hObject    handle to uic_eSmoothingSpan (see GCBO)
-	% Hints: get(hObject,'String') returns contents of uic_eSmoothingSpan as text
-	%        str2double(get(hObject,'String')) returns contents of uic_eSmoothingSpan as a double
+function uic_cbSmoothData_Callback (hObject, eventdata, handles)
+	% Hint: get (hObject, 'Value') returns toggle state of uic_cbSmoothData
+	global SmoothData;
+	global UseSmoothedData;
+	SmoothData = ~SmoothData;
+	UseSmoothedData = SmoothData;
+	set (handles.uic_cbSmoothData, 'Value', SmoothData);
+	set (handles.uic_cbUseSmoothedData, 'Value', UseSmoothedData);
+end
+
+% ~~~~~~~~~~~~~~~~~~~
+function uic_cbUse_OCS_plot_Callback (hObject, eventdata, handles)
+	% Hint: get (hObject, 'Value') returns toggle state of uic_cbUse_OCS_plot
+	global Use_OCS_plot;
+	Use_OCS_plot = ~Use_OCS_plot;
+	set (handles.uic_cbUse_OCS_plot, 'Value', Use_OCS_plot);
+end
+
+% ~~~~~~~~~~~~~~~~~~~
+function uic_cbUseSmoothedData_Callback (hObject, eventdata, handles)
+	% Hint: get (hObject, 'Value') returns toggle state of uic_cbUseSmoothedData
+	global UseSmoothedData;
+	UseSmoothedData = ~UseSmoothedData;
+	set (handles.uic_cbUseSmoothedData, 'Value', UseSmoothedData);
+end
+
+% ~~~~~~~~~~~~~~~~~~~
+function uic_eSmoothingSpan_Callback (hObject, eventdata, handles)
+	% Hints: get (hObject, 'String') returns contents of uic_eSmoothingSpan as text
+	%        str2double (get (hObject, 'String')) returns contents of uic_eSmoothingSpan as a double
 	global SmoothingSpan;
 	span = str2double (get (hObject, 'String'));
 	if ~isnan (span)
-		if (mod(span, 2) == 1) && (span > 9) && (span < 100) % must be odd
+		if (mod (span, 2) == 1) && (span > 9) && (span < 100) % must be odd
 			SmoothingSpan = span;
 			set (hObject, 'String', num2str (span));
 		else
-			warndlg ('Smoothing span must be [9 - 99] and ODD.');
+			warndlg ('Smoothing span must be [9 .. 99] and ODD.');
 		end
 	end
+end
 
+% ~~~~~~~~~~~~~~~~~~~
 % --- Executes during object creation, after setting all properties.
-function uic_eSmoothingSpan_CreateFcn(hObject, eventdata, handles)
-	% hObject    handle to uic_eSmoothingSpan (see GCBO)
-	%       See ISPC and COMPUTER.
+function uic_eSmoothingSpan_CreateFcn (hObject, eventdata, handles)
 	if ispc && isequal (get (hObject, 'BackgroundColor'), get (0, 'defaultUicontrolBackgroundColor'))
 	    set (hObject, 'BackgroundColor', 'white');
 	end
+end
+
+% ~~~~~~~~~~~~~~~~~~~
+function uic_eEDPx_Offset_Callback (hObject, eventdata, handles)
+	% Hints: get (hObject, 'String') returns contents of uic_eEDP_xOffset as text
+	%        str2double (get (hObject, 'String')) returns contents of uic_eEDP_xOffset as a double
+	global EDPx_offset;
+	offset = str2double (get (hObject, 'String'));
+	if ~isnan (offset)
+		if (offset > -100) && (offset < 100) % arbitrary limits
+			EDPx_offset = offset;
+			set (hObject, 'String', num2str (offset));
+		else
+			warndlg ('EDPx_offset must be [-99 .. 99].');
+		end
+	end
+end
+
+% ~~~~~~~~~~~~~~~~~~~
+% --- Executes during object creation, after setting all properties.
+function uic_eEDPx_Offset_CreateFcn (hObject, eventdata, handles)
+	if ispc && isequal (get (hObject, 'BackgroundColor'), get (0, 'defaultUicontrolBackgroundColor'))
+		set (hObject, 'BackgroundColor', 'white');
+	end
+end
+
+% ~~~~~~~~~~~~~~~~~~~
+function uic_eEDPy_Offset_Callback (hObject, eventdata, handles)
+	% Hints: get (hObject, 'String') returns contents of uic_eEDP_yOffset as text
+	%        str2double (get (hObject, 'String')) returns contents of uic_eEDP_yOffset as a double
+	global EDPy_offset;
+	offset = str2double (get (hObject, 'String'));
+	if ~isnan (offset)
+		if (offset > -100) && (offset < 100) % arbitrary limits
+			EDPy_offset = offset;
+			set (hObject, 'String', num2str (offset));
+		else
+			warndlg ('EDPy_offset must be [-99 .. 99].');
+		end
+	end
+end
+
+% ~~~~~~~~~~~~~~~~~~~
+% --- Executes during object creation, after setting all properties.
+function uic_eEDPy_Offset_CreateFcn (hObject, eventdata, handles)
+	if ispc && isequal (get (hObject, 'BackgroundColor'), get (0, 'defaultUicontrolBackgroundColor'))
+	  set (hObject, 'BackgroundColor', 'white');
+	end
+end
+
+% ~~~~~~~~~~~~~~~~~~~
+function uic_eEDPz_Offset_Callback (hObject, eventdata, handles)
+	% Hints: get (hObject, 'String') returns contents of uic_eEDP_zOffset as text
+	%        str2double (get (hObject, 'String')) returns contents of uic_eEDP_zOffset as a double
+	global EDPz_offset;
+	offset = str2double (get (hObject, 'String'));
+	if ~isnan (offset)
+		if (offset > -100) && (offset < 100) % arbitrary limits
+			EDPz_offset = offset;
+			set (hObject, 'String', num2str (offset));
+		else
+			warndlg ('EDPz_offset must be [-99 .. 99].');
+		end
+	end
+end
+
+% ~~~~~~~~~~~~~~~~~~~
+function uic_eEDPz_Offset_CreateFcn (hObject, eventdata, handles)
+	if ispc && isequal (get (hObject, 'BackgroundColor'), get (0, 'defaultUicontrolBackgroundColor'))
+	  set (hObject, 'BackgroundColor', 'white');
+	end
+end
+
+% ~~~~~~~~~~~~~~~~~~~
+function uic_eEDP_plot_ylim_Callback (hObject, eventdata, handles)
+	% Hints: get(hObject,'String') returns contents of uic_eEDP_plot_ylim as text
+	%        str2double(get(hObject,'String')) returns contents of uic_eEDP_plot_ylim as a double
+
+	global hEDP_mainAxes;
+	global hEDP_zoomedAxes;
+
+	ylim_ = str2double (get (hObject, 'String'));
+	if ~isnan (ylim_)
+		if (ylim_ > 4) && (ylim_ < 1000) % arbitrary limits
+			EDP_plot_ylim = ylim_;
+			set (hObject, 'String', num2str (ylim_));
+			ylim (hEDP_mainAxes, [ -EDP_plot_ylim EDP_plot_ylim ] );
+			ylim (hEDP_mainAxes, 'manual');
+			ylim (hEDP_zoomedAxes, [ -EDP_plot_ylim EDP_plot_ylim ] );
+			ylim (hEDP_zoomedAxes, 'manual');
+		else
+			warndlg ('EDP plot Y-axis limit must be [5 .. 999].');
+		end
+	end
+end
+
+% ~~~~~~~~~~~~~~~~~~~
+function uic_eEDP_plot_ylim_CreateFcn (hObject, eventdata, handles)
+	if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+		set (hObject, 'BackgroundColor', 'white');
+	end
+end

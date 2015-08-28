@@ -30,6 +30,8 @@
 % 	edp_E3D_dsl_DSIx = conv (edp_E3D_dsl (:, 1), gaussFilter);
 % 	edp_E3D_dsl_DSIy = conv (edp_E3D_dsl (:, 2), gaussFilter);
 
+
+%{
 % RecursiveMovingAverageFilter: Filter size should be odd > 1
 % RecursiveMovingAverageFilter: Expects a col of values, n x 1
 % To see both raw and smoothed data on the same plot, be sure to assign the smoothed data to edp_E3D_dsl_s,
@@ -38,10 +40,10 @@ SmoothData = false;
 % You can choose to plot it and use it, or just display it.
 UseSmoothedData = false; % triggers edp_E3D_dsl <> edp_E3D_dsl_s swap below
 if SmoothData
-	edp_E3D_dsl = edp_E3D_dsl';
-	edp_E3D_dsl_s (:,1) = RecursiveMovingAverageFilter (edp_E3D_dsl (:,1), 9); % filter
-	edp_E3D_dsl_s (:,2) = RecursiveMovingAverageFilter (edp_E3D_dsl (:,2), 9); % filter
-	edp_E3D_dsl_s (:,3) = RecursiveMovingAverageFilter (edp_E3D_dsl (:,3), 9); % filter
+	edp_E3D_dsl = edp_E3D_dsl'; % 3xn ~> nx3; col ops are faster
+	edp_E3D_dsl_s (:,1) = RecursiveMovingAverageFilter (edp_E3D_dsl (:,1), 9);
+	edp_E3D_dsl_s (:,2) = RecursiveMovingAverageFilter (edp_E3D_dsl (:,2), 9);
+	edp_E3D_dsl_s (:,3) = RecursiveMovingAverageFilter (edp_E3D_dsl (:,3), 9);
 	edp_E3D_dsl_s = edp_E3D_dsl_s'; % Transpose -> 3 x n matrix % filter
 	edp_E3D_dsl  = edp_E3D_dsl';
 end
@@ -70,6 +72,10 @@ if UseSmoothedData
 	end
 end
 
+
+%}
+
+
 % Calculate ssm (seconds since midnight) from L2 epoch16, 2xn in Windows
 % EFW_L2_epochAsIs_cdfread = spdfcdfread (MMS_edp_E3D_dsl_data, 'CombineRecords', true, 'KeepEpochAsIs', true, 'Variable', {MMS_timeTagsID});
 % EFW_L2_epochAsIsDims = size (EFW_L2_epochAsIs_cdfread);  % debug workaround for Linux
@@ -96,45 +102,62 @@ edp_plotStart = 1;
 edp_plotEnd   = nEDP;
 %   edp_E3D_dsl  (2,:) = edp_E3D_dsl  (1,:);
 %   edp_E3D_dsl_s  (2,:) = edp_E3D_dsl_s  (1,:);
-timeSeries {1} = edp_dn (edp_plotStart: edp_plotEnd)';
-MMS_DataSeries {1}  = edp_E3D_dsl  (:, edp_plotStart: edp_plotEnd);
-if SmoothData
-	dataSeriesf {1} = edp_E3D_dsl_s (:, edp_plotStart: edp_plotEnd);
-else
-	dataSeriesf {1} = edp_E3D_dsl (:, edp_plotStart: edp_plotEnd);
-end
+timeSeries {1} = edp_dn (edp_plotStart: edp_plotEnd);
+EDP_DataSeries {1}  = edp_E3D_dsl (:, edp_plotStart: edp_plotEnd);
+% if SmoothData
+% 	dataSeriesf {1} = edp_E3D_dsl_s (:, edp_plotStart: edp_plotEnd);
+% else
+% 	dataSeriesf {1} = edp_E3D_dsl (:, edp_plotStart: edp_plotEnd);
+% end
+
+% 	if PlotRawAndSmoothed % 'LineStyle', 'none'
+% 		plot (timeSeries {1}, EDP_DataSeries {1}, timeSeries {1}, dataSeriesf {1}, 'LineStyle', '-', 'Marker', '.', 'MarkerSize', 2);
+% hEDP_mainAxes = subplot (1, 8, [1, 5]); % So this is the first 5/8 of the figure...
+% hEDP_plot = plot (hEDP_mainAxes, ...
+% 	timeSeries {1}, EDP_DataSeries {1}, ...
+% 	'LineStyle', '-', 'Marker', '.', 'MarkerSize', 2);
+
+% hEDP_plot = plot (hEDP_mainAxes, ...
+% 	edp_dn, edp_E3D_dsl (1,:), ...
+% 	edp_dn, edp_E3D_dsl (2,:), ...
+% 	edp_dn, edp_E3D_dsl (3,:), ...
+% 	'LineStyle', '-', 'Marker', '.', 'MarkerSize', 2);
+
+hEDP_plot = plot (hEDP_mainAxes, ...
+	edp_dn, edp_E3D_dsl, ...
+	'LineStyle', '-', 'Marker', '.', 'MarkerSize', 2);
 
 hold on
-% 	if PlotRawAndSmoothed % 'LineStyle', 'none'
-% 		plot (timeSeries {1}, MMS_DataSeries {1}, timeSeries {1}, dataSeriesf {1}, 'LineStyle', '-', 'Marker', '.', 'MarkerSize', 2);
-hEDP_plot_mainAxes = subplot (1, 8, [1, 5]);
-plot (...
-	timeSeries {1}, MMS_DataSeries {1},...
-	timeSeries {1}, dataSeriesf {1},...
-	'LineStyle', '-', 'Marker', '.', 'MarkerSize', 2);
+
+% 	timeSeries {1}, dataSeriesf {1},...
+
 % 	timeSeries {1}, EFW_L2_Equality,...
 
 %  	hEFWplotAxes = axes;
 % 	else
-% 		plot (timeSeries {1}, MMS_DataSeries {1}, 'LineStyle', 'none', 'Marker', '.', 'MarkerSize', 2);
+% 		plot (timeSeries {1}, EDP_DataSeries {1}, 'LineStyle', 'none', 'Marker', '.', 'MarkerSize', 2);
 % 	end
 set (gca, 'FontSize', 10);
 grid on;
 
 EDP_plot_index_line = edp_dn (5); % just pick one; it will be rewritten by the BPP plot, but needs to init here
 % 	hEDP_plot_index_line = line ( [EDP_plot_index_line EDP_plot_index_line], get (hEFWplotAxes, 'YLim'), 'Color', 'red' , 'LineStyle', '-' , 'LineWidth', 2);
-hEDP_plot_index_line = line ( [EDP_plot_index_line EDP_plot_index_line], get (hEDP_plot_mainAxes, 'YLim'), 'Color', 'red' , 'LineStyle', '-' , 'LineWidth', 2);
-% 	dtEFW_L2_datenumPlotIndexLine = dtEFW_L2_datenum (5); % just pick one; it will be rewritten by the BPP plot, but needs to init here
-% 	hEDP_plot_index_line = line ( [dtEFW_L2_datenumPlotIndexLine dtEFW_L2_datenumPlotIndexLine], get (hEFWplotAxes, 'YLim'), 'Color', 'red' , 'LineStyle', '-' , 'LineWidth', 2);
+
+hEDP_plot_index_line = line ( ...
+	[EDP_plot_index_line EDP_plot_index_line], ...
+	get (hEDP_mainAxes, 'YLim'), ...
+	'Color', 'red' , 'LineStyle', '-' , 'LineWidth', 2);
 
 DateStart = timeSeries {1} (1);
 DateEnd   = timeSeries {1} (end);
 xlim ([DateStart DateEnd]);
-xTickData = linspace (DateStart, DateEnd, 11);
+xTickData = linspace (DateStart, DateEnd, 5);
 set (gca, 'XTick', xTickData);
-datetick ('x', 'HH:MM:SS','keepticks', 'keeplimits');
+datetick (hEDP_mainAxes, 'x', 'HH:MM:SS', 'keepticks', 'keeplimits');
 ZoomDateTicks ('on');
-hLegend = legend (hEDP_plot_mainAxes, 'EFW Ex', 'EFW Ey', 'EFW Exf', 'EFW Eyf', 'Location', 'NorthEast');
+
+% hLegend = legend (hEDP_mainAxes, 'EFW Ex', 'EFW Ey', 'EFW Exf', 'EFW Eyf', 'Location', 'NorthEast');
+hLegend = legend (hEDP_mainAxes, 'EFW E_x', 'EFW E_y', 'EFW E_z', 'Location', 'NorthEast');
 hText = findobj (hLegend, 'type', 'text');
 nhText = size (hText,1);
 for i = 1: nhText
@@ -143,9 +166,9 @@ end
 
 MEEdrift_plot_EDP_zoomed_region
 
-TightFig;
-% hLegend = legend (hEDP_plot_mainAxes, 'EFW E_x', 'EFW E_y', 'EFW E_x_f', 'EFW E_y_f', 'Quality', 'Location', 'NorthEast');
-hLegend = legend (hEDP_plot_mainAxes, 'EFW E_x', 'EFW E_y', 'EFW E_x_f', 'EFW E_y_f', 'Location', 'NorthEast');
+% TightFig;
+% hLegend = legend (hEDP_mainAxes, 'EFW E_x', 'EFW E_y', 'EFW E_x_f', 'EFW E_y_f', 'Quality', 'Location', 'NorthEast');
+% hLegend = legend (hEDP_mainAxes, 'EFW E_x', 'EFW E_y', 'EFW E_x_f', 'EFW E_y_f', 'Location', 'NorthEast');
 
 %      d=0.02; %distance between images
 %      moon = imread('moon.tif');

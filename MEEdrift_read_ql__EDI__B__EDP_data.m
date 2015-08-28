@@ -67,9 +67,9 @@ if ~isequal (mms_ql__EDI__BdvE__dataFile, 0) % then a valid [we hope] file selec
 	disp ([ 'Reading MMS EDI_&_B data... ', mms_ql__EDI__BdvE__data ])
 	mms_ql_EDI_fileInfo = spdfcdfinfo (mms_ql__EDI__BdvE__data);
 	edi_B_dmpa_varInfo = CDF_varInfo (mms_ql_EDI_fileInfo, ['mms', obsID, '_edi_B_dmpa']);
-	edi_B_dmpa_fillVal = edi_B_dmpa_varInfo.fillVal;
+	edi_B_dmpa_fillVal = edi_B_dmpa_varInfo.FillVal;
 	edi_d_dmpa_varInfo = CDF_varInfo (mms_ql_EDI_fileInfo, ['mms', obsID, '_edi_d_dmpa']);
-	edi_d_dmpa_fillVal = edi_d_dmpa_varInfo.fillVal;
+	edi_d_dmpa_fillVal = edi_d_dmpa_varInfo.FillVal;
 
 	% ~~~~~~~~~~~~~~~~~~~ B d v E
 	edi_BdvE_t2k = spdfcdfread (mms_ql__EDI__BdvE__data, ...
@@ -80,12 +80,12 @@ if ~isequal (mms_ql__EDI__BdvE__dataFile, 0) % then a valid [we hope] file selec
 	edi_B_dmpa = spdfcdfread (mms_ql__EDI__BdvE__data, ...
 		'CombineRecords',        true, ...
 		'Variable',              ['mms', obsID, '_edi_B_dmpa']);
-	edi_E_dmpa = spdfcdfread (mms_ql__EDI__BdvE__data, ...
-		'CombineRecords',        true, ...
-		'Variable',              ['mms', obsID, '_edi_E_dmpa']);
 	edi_d_dmpa = spdfcdfread (mms_ql__EDI__BdvE__data, ...
 		'CombineRecords',        true, ...
 		'Variable',              ['mms', obsID, '_edi_d_dmpa']);
+	edi_E_dmpa = spdfcdfread (mms_ql__EDI__BdvE__data, ...
+		'CombineRecords',        true, ...
+		'Variable',              ['mms', obsID, '_edi_E_dmpa']);
 
 	% The record number of edi_B_dmpa to which 5s sets of EDI beams map.
 	BdvE_xref2_edi = spdfcdfread (mms_ql__EDI__BdvE__data, ...
@@ -95,49 +95,49 @@ if ~isequal (mms_ql__EDI__BdvE__dataFile, 0) % then a valid [we hope] file selec
 	[ datestr(spdftt2000todatenum(edi_BdvE_t2k(1)),   'yyyy-mm-dd HH:MM:ss'), ' ',...
 	  datestr(spdftt2000todatenum(edi_BdvE_t2k(end)), 'yyyy-mm-dd HH:MM:ss') ]
 
-	% ~~~~~~~~~~~~~~~~~~~ GDU data
-	edi_gd12_beam_t2k = spdfcdfread (mms_ql__EDI__BdvE__data, ...
+	% ~~~~~~~~~~~~~~~~~~~ GDU 12 data
+	gd12_beam_t2k = spdfcdfread (mms_ql__EDI__BdvE__data, ...
 		'CombineRecords',        true, ...
 		'Variable',              'epoch_gd12_beam', ...
 		'ConvertEpochToDatenum', false, ...
 		'KeepEpochAsIs',         true);
-	edi_gd12_virtual_dmpa = spdfcdfread (mms_ql__EDI__BdvE__data, ...
+	gd12_virtual_dmpa = spdfcdfread (mms_ql__EDI__BdvE__data, ...
 		'CombineRecords',        true, ...
 		'Variable',              ['mms', obsID, '_edi_pos_virtual_gun1_dmpa']);
-	edi_gd12_fv_dmpa = spdfcdfread (mms_ql__EDI__BdvE__data, ...
+	gd12_fv_dmpa = spdfcdfread (mms_ql__EDI__BdvE__data, ...
 		'CombineRecords',        true, ...
 		'Variable',              ['mms', obsID, '_edi_fv_gd12_dmpa']);
-	edi_gd12_xref2_B = spdfcdfread (mms_ql__EDI__BdvE__data, ...
+	gd12_xref2_B = spdfcdfread (mms_ql__EDI__BdvE__data, ...
 		'CombineRecords',        true, ...
 		'Variable',              ['mms', obsID, '_edi_recnum_gd12']);
 % 	edi_gd12_quality = spdfcdfread (mms_ql__EDI__BdvE__data, ...
 % 		'CombineRecords',        true, ...
 % 		'Variable',              ['mms', obsID, '_edi_beam_quality_gd12']);
-	disp 'Date range of edi_gd12_beam_t2k'
-	[ datestr(spdftt2000todatenum(edi_gd12_beam_t2k(1)),   'yyyy-mm-dd HH:MM:ss'), ' ',...
-	  datestr(spdftt2000todatenum(edi_gd12_beam_t2k(end)), 'yyyy-mm-dd HH:MM:ss') ]
+	disp 'Date range of gd12_beam_t2k'
+	[ datestr(spdftt2000todatenum(gd12_beam_t2k(1)),   'yyyy-mm-dd HH:MM:ss'), ' ',...
+	  datestr(spdftt2000todatenum(gd12_beam_t2k(end)), 'yyyy-mm-dd HH:MM:ss') ]
 
-	% ~~~~~~~~~~~~~~~~~~~ GDU data
-	edi_gd21_beam_t2k = spdfcdfread (mms_ql__EDI__BdvE__data, ...
+	% ~~~~~~~~~~~~~~~~~~~ GDU 21 data
+	gd21_beam_t2k = spdfcdfread (mms_ql__EDI__BdvE__data, ...
 		'CombineRecords',        true, ...
 		'Variable',              'epoch_gd21_beam', ...
 		'ConvertEpochToDatenum', false, ...
 		'KeepEpochAsIs',         true);
-	edi_gd21_virtual_dmpa = spdfcdfread (mms_ql__EDI__BdvE__data, ...
+	gd21_virtual_dmpa = spdfcdfread (mms_ql__EDI__BdvE__data, ...
 		'CombineRecords',        true, ...
 		'Variable',              ['mms', obsID, '_edi_pos_virtual_gun2_dmpa']);
-	edi_gd21_fv_dmpa = spdfcdfread (mms_ql__EDI__BdvE__data, ...
+	gd21_fv_dmpa = spdfcdfread (mms_ql__EDI__BdvE__data, ...
 		'CombineRecords',        true, ...
 		'Variable',              ['mms', obsID, '_edi_fv_gd21_dmpa']);
-	edi_gd21_xref2_B = spdfcdfread (mms_ql__EDI__BdvE__data, ...
+	gd21_xref2_B = spdfcdfread (mms_ql__EDI__BdvE__data, ...
 		'CombineRecords',        true, ...
 		'Variable',              ['mms', obsID, '_edi_recnum_gd21']);
 % 	edi_gd21_quality = spdfcdfread (mms_ql__EDI__BdvE__data, ...
 % 		'CombineRecords',        true, ...
 % 		'Variable',              ['mms', obsID, '_edi_beam_quality_gd21']);
-	disp 'Date range of edi_gd21_beam_t2k'
-	[ datestr(spdftt2000todatenum(edi_gd21_beam_t2k(1)),   'yyyy-mm-dd HH:MM:ss'), ' ',...
-	  datestr(spdftt2000todatenum(edi_gd21_beam_t2k(end)), 'yyyy-mm-dd HH:MM:ss') ]
+	disp 'Date range of gd21_beam_t2k'
+	[ datestr(spdftt2000todatenum(gd21_beam_t2k(1)),   'yyyy-mm-dd HH:MM:ss'), ' ',...
+	  datestr(spdftt2000todatenum(gd21_beam_t2k(end)), 'yyyy-mm-dd HH:MM:ss') ]
 
 	% If CDF_FileInfo.FileSettings.Majority = 'Row' then transpose to col vector matrix.
 	% But MATLAB searches faster in cols, so if there is filtering to be done,
@@ -164,20 +164,20 @@ if ~isequal (mms_ql__EDI__BdvE__dataFile, 0) % then a valid [we hope] file selec
 	% If we keep the NaN B records, then we must check B valid for each EDI record set.
 
 	for i = 1: length (iBeqBad)
-		i12BeqBad_match_EDI = find (edi_gd12_xref2_B == iBeqBad (i));
+		i12BeqBad_match_EDI = find (gd12_xref2_B == iBeqBad (i));
 		if ~isempty (i12BeqBad_match_EDI)
-			edi_gd12_beam_t2k     (i12BeqBad_match_EDI, :) = [];
-			edi_gd12_fv_dmpa      (i12BeqBad_match_EDI, :) = [];
-			edi_gd12_virtual_dmpa (i12BeqBad_match_EDI, :) = [];
-			edi_gd12_xref2_B      (i12BeqBad_match_EDI, :) = [];  %%% See note above
+			gd12_beam_t2k     (i12BeqBad_match_EDI, :) = [];
+			gd12_fv_dmpa      (i12BeqBad_match_EDI, :) = [];
+			gd12_virtual_dmpa (i12BeqBad_match_EDI, :) = [];
+			gd12_xref2_B      (i12BeqBad_match_EDI, :) = [];  %%% See note above
 		end
 
-		i21BeqBad_match_EDI = find (edi_gd21_xref2_B == iBeqBad (i));
+		i21BeqBad_match_EDI = find (gd21_xref2_B == iBeqBad (i));
 		if ~isempty (i21BeqBad_match_EDI)
-			edi_gd21_beam_t2k     (i21BeqBad_match_EDI, :) = [];
-			edi_gd21_fv_dmpa      (i21BeqBad_match_EDI, :) = [];
-			edi_gd21_virtual_dmpa (i21BeqBad_match_EDI, :) = [];
-			edi_gd21_xref2_B      (i21BeqBad_match_EDI, :) = [];  %%% See note above
+			gd21_beam_t2k     (i21BeqBad_match_EDI, :) = [];
+			gd21_fv_dmpa      (i21BeqBad_match_EDI, :) = [];
+			gd21_virtual_dmpa (i21BeqBad_match_EDI, :) = [];
+			gd21_xref2_B      (i21BeqBad_match_EDI, :) = [];  %%% See note above
 		end
 	end
 
@@ -192,21 +192,21 @@ if ~isequal (mms_ql__EDI__BdvE__dataFile, 0) % then a valid [we hope] file selec
 % 	clear edi_gd21_quality
 
 	% Now is the time to change from nx3 data to 3xn, where applicable
-	edi_gd_beam_t2k = [ edi_gd12_beam_t2k; edi_gd21_beam_t2k ];
-	edi_gd_beam_dn  = spdftt2000todatenum (edi_gd_beam_t2k);
+	gd_beam_t2k = [ gd12_beam_t2k; gd21_beam_t2k ];
+	gd_beam_dn  = spdftt2000todatenum (gd_beam_t2k);
 
-	edi_gd_fv_dmpa      = [ double(edi_gd12_fv_dmpa)' double(edi_gd21_fv_dmpa)' ];
-	edi_gd_virtual_dmpa = [ edi_gd12_virtual_dmpa'    edi_gd21_virtual_dmpa' ];
-	% edi_xref2_BdvE[] values match values in edi_BdvE_recnums[].
+	edi_gd_fv_dmpa      = [ double(gd12_fv_dmpa)' double(gd21_fv_dmpa)' ];
+	edi_gd_virtual_dmpa = [ gd12_virtual_dmpa'    gd21_virtual_dmpa' ];
+	% gd_xref2_BdvE[] values match values in edi_BdvE_recnums[].
 	% To match BdvE records with EDI records (1:many), either
-	% 1) find (edi_BdvE_recnums == edi_xref2_BdvE(i)) ~> should return only 1 record. or
-	% 2) find (edi_xref2_BdvE == edi_BdvE_recnums(i)) ~> can return 0 or more
-	edi_xref2_BdvE      = [ edi_gd12_xref2_B;         edi_gd21_xref2_B ];
+	% 1) find (edi_BdvE_recnums == gd_xref2_BdvE(i)) ~> should return only 1 record. or
+	% 2) find (gd_xref2_BdvE == edi_BdvE_recnums(i)) ~> can return 0 or more
+	gd_xref2_BdvE      = [ gd12_xref2_B;         gd21_xref2_B ];
 
 	% Better keep track of which GDU fired the beam. Corresponds to concatenation order above.
 	edi_gd_ID           = [ ...
-		zeros(1, size(edi_gd12_fv_dmpa, 1), 'uint8')+1, ...
-		zeros(1, size(edi_gd21_fv_dmpa, 1), 'uint8')+2 ];
+		zeros(1, size(gd12_fv_dmpa, 1), 'uint8')+1, ...
+		zeros(1, size(gd21_fv_dmpa, 1), 'uint8')+2 ];
 
 	% ... and tranpose B records
 	BdvE_dn    = spdftt2000todatenum (edi_BdvE_t2k);
@@ -214,7 +214,7 @@ if ~isequal (mms_ql__EDI__BdvE__dataFile, 0) % then a valid [we hope] file selec
 	edi_d_dmpa = edi_d_dmpa';
 	edi_E_dmpa = edi_E_dmpa';
 
-	[ ~, iSorted_beam_t2k ] = sort (edi_gd_beam_t2k, 1);
+	[ ~, iSorted_beam_t2k ] = sort (gd_beam_t2k, 1);
 	ValidDataLoaded = true; % assume that user knows data is good
 
 	% ~~~~~~~~~~~~~~~~~~~
@@ -233,7 +233,7 @@ if ~isequal (mms_ql__EDI__BdvE__dataFile, 0) % then a valid [we hope] file selec
 		disp ([ 'Reading EDP data... ', mms_ql__EDP_data ])
 		mms_ql_EDP_fileInfo = spdfcdfinfo (mms_ql__EDP_data);
 		dce_xyz_dsl_varInfo = CDF_varInfo (mms_ql_EDP_fileInfo, ['mms', obsID, '_edp_dce_xyz_dsl']);
-		dce_xyz_dsl_fillVal = dce_xyz_dsl_varInfo.fillVal;
+		dce_xyz_dsl_fillVal = dce_xyz_dsl_varInfo.FillVal;
 
 		% ~~~~~~~~~~~~~~~~~~~ DC E-field
 		edp_t2k = spdfcdfread (mms_ql__EDP_data, ...
@@ -254,10 +254,10 @@ if ~isequal (mms_ql__EDI__BdvE__dataFile, 0) % then a valid [we hope] file selec
 
 		idceFillVal = find (edp_E3D_dsl_r (:, 1) == dce_xyz_dsl_fillVal);
 		edp_E3D_dsl_r (idceFillVal, :) = [];
-		edp_t2k     (idceFillVal)    = [];
-		edp_E3D_Q   (idceFillVal)    = [];
+		edp_t2k       (idceFillVal)    = [];
+% 		edp_E3D_Q   (idceFillVal)    = [];
 
-		iE3D_Q = find (edp_E3D_Q < 3); % 2015-07-30 they are all 0
+% 		iE3D_Q = find (edp_E3D_Q < 3); % 2015-07-30 they are all 0
 
 		edp_dn = spdftt2000todatenum (edp_t2k);
 % 		disp 'Date range of edp_t2k'
@@ -271,7 +271,7 @@ if ~isequal (mms_ql__EDI__BdvE__dataFile, 0) % then a valid [we hope] file selec
 
 		edp_E3D_dsl_r (iEDP_EDI_noMatch, :) = [];
 		edp_t2k       (iEDP_EDI_noMatch) = [];
-		edp_E3D_Q     (iEDP_EDI_noMatch) = [];
+% 		edp_E3D_Q     (iEDP_EDI_noMatch) = [];
 		edp_dn        (iEDP_EDI_noMatch) = [];
 
 		% edp_E3D_dsl assigned edp_E3D_dsl_r as first choice for calcs
@@ -300,19 +300,19 @@ end % ~isequal (mms_ql__EDI__BdvE__dataFile, 0)
 % 	iq21lt3 = find (edi_gd21_quality < 3);
 %
 % 	if ~isempty (iq12lt3)
-% 		size (edi_gd12_beam_t2k)
-% 		edi_gd12_beam_t2k (iq12lt3, :) = [];
-% 		edi_gd12_fv_dmpa     (iq12lt3, :) = [];
-% 		edi_gd12_xref2_B     (iq12lt3, :) = [];
+% 		size (gd12_beam_t2k)
+% 		gd12_beam_t2k (iq12lt3, :) = [];
+% 		gd12_fv_dmpa     (iq12lt3, :) = [];
+% 		gd12_xref2_B     (iq12lt3, :) = [];
 % 		edi_gd12_quality     (iq12lt3, :) = [];
-% 		size (edi_gd12_beam_t2k)
+% 		size (gd12_beam_t2k)
 % 	end
 %
 % 	if ~isempty (iq21lt3)
-% 		size (edi_gd21_beam_t2k)
-% 		edi_gd21_beam_t2k (iq21lt3, :) = [];
-% 		edi_gd21_fv_dmpa     (iq21lt3, :) = [];
-% 		edi_gd21_xref2_B     (iq21lt3, :) = [];
+% 		size (gd21_beam_t2k)
+% 		gd21_beam_t2k (iq21lt3, :) = [];
+% 		gd21_fv_dmpa     (iq21lt3, :) = [];
+% 		gd21_xref2_B     (iq21lt3, :) = [];
 % 		edi_gd21_quality     (iq21lt3, :) = [];
-% 		size (edi_gd21_beam_t2k)
+% 		size (gd21_beam_t2k)
 % 	end

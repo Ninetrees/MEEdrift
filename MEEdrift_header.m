@@ -2,12 +2,27 @@
 	Name: MEEdrift
 	Description: Correct EFW E-field measurements based on EDI measurements
 
+	2015-08-28 ~ v02.00.00:
+	 ~ Remove reentrancy.
+	 ~ Add EDP smoothing.
+	 ~ Add EDP Y-axis plot scale.
+	 ~ Test SPDF PatchVersion: '3.6.0.6' wrt new spdfcdfinfo enhancements.
+	   See, for example, mms_ql_EDI_fileInfo = spdfcdfinfo (mms_ql__EDI__BdvE__data)
+	   and subsequent processing. (MEEdrift_read_ql__EDI__B__EDP_data.m)
+	   See spdfcdfinfo.m header for important notes about usage.
+	 ~ Add EDPxyz offset (mV) boxes to Control Panel
+	   to add|subtract some offset from EDP data, and redisplay.
+	 ~ Add EDPxyz offset button to Main Menu.
+	 ~ Add Smoothing button to Main Menu.
+	 ~ Always use smoothed EDP data if smoothing has been applied.
+	 ~ Check smoothing after applying EPDxyz offsets.
+
 	2015-08-14 ~ v01.02.00:
 	 ~ Some code files were getting too busy. Split off logical code blocks.
 	 ~ Implemented smoothing: implemented edp_E3D_dsl, edp_E3D_dsl_r, edp_E3D_dsl_s.
 	   See code notes for usage.
 	 ~ Add GUI panel for main menu, replacing listbox.
-	 ~ Add GUI panel for global options: Reentrant, PlotCOnvergence, etc.,
+	 ~ Add GUI panel for global options: Reentrant, PlotConvergence, etc.,
 	   replacing need to edit program before each run, and eliminating need for
 	   configuration files.
 
@@ -27,17 +42,18 @@
 	iVarName is an index to VarName
 	iiVarName is an index to an index to VarName; e.g., VarName (iVarName (iiVarName))
 	nVarName is the number of elements in VarName
+	_mdcs is MMS despun coord system. It stands for any that is useful.
 	_dn  indicates a MATLAB datenum variable
 	_t2k indicates a CDF TT2000 variable
 	u or _u is a unit vector; _u used for clarity when needed
-	2n indicates a norm 2 result.
+	2n indicates a 2-norm result.
 
 	MATLAB datenum does not include leap seconds as of 2015-07-28, so...
 	the chioces are tt2000 or tt2000~>ssm (seconds since midnight).
 	ssm has the advantage of already being in seconds, where so many calcs are done,
 	but doesn't cross midnight without handling at each calc.
 	tt2000 handles leap seconds and midnight, but requires handling in some cases;
-	e.g., if abs ((edp_t2k (iEDP_t2kHI) - edi_gd_beam_t2k (iBeam)) < 1.0e8),
+	e.g., if abs ((edp_t2k (iEDP_t2kHI) - gd_beam_t2k (iBeam)) < 1.0e8),
 	rather than if abs ((edp_ssm (iEDP_t2kHI) - edi_gd_beam_ssm (iBeam)) < 0.1s).
 	In this cose, note the uniform conversion from tt2k in ns to some other time
 	simply by using the relationship tt2k * 1e9 = seconds.
