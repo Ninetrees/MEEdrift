@@ -5,7 +5,7 @@
 % is to convert to the frequency domain to find the frequency components of a signal
 % buried in a noisy time domain signal.
 
-% Cluster EFW is just that sort of data, and, due to the rotation of the spacecraft,
+% Cluster EDP is just that sort of data, and, due to the rotation of the spacecraft,
 % the data is susceptible to aliasing with low-frequency components.
 
 % The main reason for so many frequencies is because of the noise.
@@ -22,7 +22,7 @@ set (fFFT_plot, 'DockControls', 'off')
 set (fFFT_plot, 'units', 'pixel'); % for screen
 set (0, 'CurrentFigure', fFFT_plot) % hFFT_plotElements
 clf
-set (gcf, 'name', 'EFW FFT of largest 2^n samples', 'NumberTitle', 'off');
+set (gcf, 'name', 'EDP FFT of largest 2^n samples', 'NumberTitle', 'off');
 
 
 %parameters for figure and panel size, pixels
@@ -64,7 +64,7 @@ plot (freqRange, freqDist)
 xlim ([ 0.0 14.0 ]);
 % ylim ([ 0.0 1.0 ]);
 set (gca, 'Xtick', 0.0: 0.5: 14.0)
-title ('Cluster EFW FFT')
+title ('Cluster EDP FFT')
 set (FFTx_axis, 'xticklabel', [])
 ylabel ('EFW_x FFT')
 

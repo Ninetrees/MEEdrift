@@ -81,7 +81,7 @@ nTargetBeams
 %{
 		% now we need the drift step...
 		virtualSource_bpp = [ GrubbsBeamInterceptMean(1); GrubbsBeamInterceptMean(2); 0.0 ];
-		gyroFrequency = (q * B2n * nT2T) / e_mass; % (SI) (|q| is positive here.)
+		gyroFrequency = (q * B2n * nT2T) / mass_e; % (SI) (|q| is positive here.)
 		gyroPeriod    = (twoPi / gyroFrequency);    % (SI) The result is usually on the order of a few ms
 
 		% vE = v in direction of E; T = gyroPeriod

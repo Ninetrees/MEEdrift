@@ -8,7 +8,7 @@
 	3. For each beam data point
 		 a. Draw the center GDU
 		 b. Draw GDU locations and beams for 4 beams either side (in ssm) of this one, AND within 2 s of this beam
-		 c. Find the 2 EFW data points whose times (in ssm) bracket the center beam time (ssm)
+		 c. Find the 2 EDP data points whose times (in ssm) bracket the center beam time (ssm)
 		    Interpolate E-field values twixt them wrt time
 		 c. Plot the virtual source S* for each beam as a vector from the origin
 		    (the detector of the virtual spacecraft) to S*
@@ -166,7 +166,11 @@ view ([   0 90 ]); % Azimuth, Elevation in degrees, std x-y plot
 % but imagine that the sc starts in BPP and rotates to its present position
 % in DMPA... viewed in BPP vector space... that is why we use BBB2DSI here.
 % This same line of reasoning is applied to the GDUs and the beams.
-hBPP_plotElements (2) = plot3 (instrPlaneDMPA (1,:), instrPlaneDMPA (2,:), instrPlaneDMPA (3,:), 'LineStyle', '-', 'LineWidth', 1.0, 'Color', 'white');
+hBPP_plotElements (2) = plot3 ( ...
+	instrPlaneDMPA (1,:), ...
+	instrPlaneDMPA (2,:), ...
+	instrPlaneDMPA (3,:), ...
+	'LineStyle', '-', 'LineWidth', 1.0, 'Color', 'white');
 
 if PlotHoldOff
 	if (length (hBPP_plotElements) > 2)
@@ -177,11 +181,12 @@ if PlotHoldOff
 	end;
 end
 
+AxisMax = OCS_BPP_axisMax;
 if Use_OCS_plot
 	set (0, 'CurrentFigure', fDMPA_plot) % hDMPA_plotElements
 	set (fDMPA_plot, 'color', 'white'); % sets the color to white
-	AxisMax = 4;
-	axis ([ -AxisMax AxisMax  -AxisMax AxisMax  -AxisMax AxisMax  -AxisMax AxisMax ]); % expanded axes for viewing larger drift steps
+% 	axis ([ -AxisMax AxisMax  -AxisMax AxisMax  -AxisMax AxisMax  -AxisMax AxisMax ]);
+	axis ([ -AxisMax AxisMax  -AxisMax AxisMax  -AxisMax AxisMax ]);
 	axis square;
 	axis vis3d;
 	axis on;
@@ -191,8 +196,8 @@ end
 
 set (0, 'CurrentFigure', fBPP_plot) % hBPP_plotElements DMPA2BPP
 set (fBPP_plot, 'color', 'white'); % sets the color to white
-AxisMax = 4;
-axis ([ -AxisMax AxisMax  -AxisMax AxisMax  -AxisMax AxisMax  -AxisMax AxisMax ]); % expanded axes for viewing larger drift steps
+% 	axis ([ -AxisMax AxisMax  -AxisMax AxisMax  -AxisMax AxisMax  -AxisMax AxisMax ]);
+	axis ([ -AxisMax AxisMax  -AxisMax AxisMax  -AxisMax AxisMax ]);
 axis square;
 axis vis3d;
 axis on;
@@ -283,10 +288,10 @@ for BeamBracketIndex = (iiSorted_beam_t2k - beamsWindow) : (iiSorted_beam_t2k + 
 % 	 B2norm * v_1keV_electron * cos (gyroFrequency * gyroPeriod)) * 1.0e-9 % (nt > T, V > mV)
 % E_vPerp_phi_ToF = -2.0 * B2norm * v_1keV_electron * sin (atan (FiringDirBPP (2, nTargetBeams) / FiringDirBPP (1, nTargetBeams))) / (gyroFrequency * gyroPeriod) * 1.0e-9 % (nt > T, V > mV)
 
-			% Find the EFW L2 target in the BPP plane defined by the centerBeamB and DMPA2BPP for this beam
+			% Find the EDP L2 target in the BPP plane defined by the centerBeamB and DMPA2BPP for this beam
 			% 1. Rotate BavgSCS (nT) into BPP coordinates (needed for edp_E_interp calculations following)
 			% 2. Rotate edp_E_interp (mV/m) into BPP coordinates
-			% 3. Calculate the EFW BPP target location (meters) using (see inline references)
+			% 3. Calculate the EDP BPP target location (meters) using (see inline references)
 			% -------------------------------------------------------------------------------------
 
 	 	  if iBeam == iCenterBeam
@@ -332,11 +337,11 @@ for BeamBracketIndex = (iiSorted_beam_t2k - beamsWindow) : (iiSorted_beam_t2k + 
 						'LineStyle', 'none', 'Marker', 'o', 'MarkerFaceColor', 'red', 'MarkerEdgeColor', 'red', 'MarkerSize', 5.0);
 				end
 
-				% Perform E·B = 0 in 3D to get the full EFW perp vector in DMPA (need z-axis)
-				% Find 2 EFW records whose ssm brackets the center beam; interpolate the E-fields wrt ssm
+				% Perform E·B = 0 in 3D to get the full EDP perp vector in DMPA (need z-axis)
+				% Find 2 EDP records whose ssm brackets the center beam; interpolate the E-fields wrt ssm
 				iEDP_t2kHI = find ((edp_t2k - gd_beam_t2k (iBeam)) > 0.0, 1); % First edp_t2k > center beam time
 
-				% EFW L2 ssm must be close enough to beam time to be useful
+				% EDP L2 ssm must be close enough to beam time to be useful
 				% We don't want to interpolate over more than 0.1 s.
 				% 0.1s / EDP_samplePeriod (0.0078125s @ 128 Hz) ~> 12.8 records
 				% tt2000 is in ns: 0.1s ~> 1e8 ns. Because there are potentially
@@ -357,29 +362,19 @@ for BeamBracketIndex = (iiSorted_beam_t2k - beamsWindow) : (iiSorted_beam_t2k + 
 
 					% Remember that there are ~13 recs / 0.1s @ 128 Hz sample rate
 					if (edp_t2kHI - edp_t2kLO) > 1.0e8
-						warning ('Interpolating EFW data points more than 100 ms apart.');
+						warning ('Interpolating EDP data points more than 100 ms apart.');
 					end
 
 					interp_frac  = double (centerBeam_t2k - edp_t2kLO) / double (edp_t2kHI - edp_t2kLO);
 
-% Don't remove until decision re E.B=0
-% 					edp_ExLO = edp_E3D_dsl (1, iEDP_t2kLO);
-% 					edp_EyLO = edp_E3D_dsl (2, iEDP_t2kLO);
-% 					edp_EzLO = - (edp_ExLO * centerBeamB (1) + edp_EyLO * centerBeamB (2)) / centerBeamB (3);
-% 					edp_ELO  = [ edp_ExLO; edp_EyLO; edp_EzLO ];
-
 					edp_ELO  = edp_E3D_dsl (:, iEDP_t2kLO);
-	% 				disp ( [ '....... E-field LO: ', sprintf('%.3f %.3f %.3f',edp_ELO) ] ); % V&V
+					%	disp ( [ '....... E-field LO: ', sprintf('%.3f %.3f %.3f',edp_ELO) ] ); % V&V
 
-% 					edp_ExHI = edp_E3D_dsl (2, iEDP_t2kHI);
-% 					edp_EyHI = -edp_E3D_dsl (1, iEDP_t2kHI);
-% 					edp_EzHI = - (edp_ExHI * centerBeamB (1) + edp_EyHI * centerBeamB (2)) / centerBeamB (3);
-% 					edp_EHI  = [ edp_ExHI; edp_EyHI; edp_EzHI ];
 					edp_EHI = edp_E3D_dsl (:, iEDP_t2kHI);
-	% 				disp ( [ '....... E-field HI: ', sprintf('%.3f %.3f %.3f',edp_EHI) ] ); % V&V
+					%	disp ( [ '....... E-field HI: ', sprintf('%.3f %.3f %.3f',edp_EHI) ] ); % V&V
 
 					edp_E_diff = edp_EHI - edp_ELO;
-	% 				disp ( [ '....... E-field HI-LO delta: ', sprintf('%.3f %.3f %.3f',edp_E_diff) ] ); % V&V
+					%	disp ( [ '....... E-field HI-LO delta: ', sprintf('%.3f %.3f %.3f',edp_E_diff) ] ); % V&V
 
 					edp_E_interp   = edp_ELO + edp_E_diff * interp_frac; % The interpolated value of edp_E at EDI beam time
 					edp_E_interp_u = edp_E_interp / norm (edp_E_interp, 2);
@@ -399,7 +394,7 @@ for BeamBracketIndex = (iiSorted_beam_t2k - beamsWindow) : (iiSorted_beam_t2k + 
 
 					% [9] Chen, [2-3]
 					% [12] Messeder, (validation calculations), 2011
-					gyroFrequency = (-q * centerBeamB2n * nT2T) / e_mass; % (SI) (|q| is positive here.)
+					gyroFrequency = (-q * centerBeamB2n * nT2T) / mass_e; % (SI) (|q| is positive here.)
 					gyroPeriod = (2.0 * pi / gyroFrequency);      % (SI) The result is usually on the order of a few ms
 
 					% We have filtered for beam loops = 1 (N =1)
@@ -421,14 +416,24 @@ for BeamBracketIndex = (iiSorted_beam_t2k - beamsWindow) : (iiSorted_beam_t2k + 
 					% not the virtual source, S*. See relevant publications on Cluster drift step
 					% and 'EDI_beams_and_virtual_source_demo_0101.m'.
 
-% 					edp_E_interp_d_dmpa = ((cross (edp_E_interp, centerBeamB) / centerBeamB2n^2 ) * C2V2T * gyroPeriod); % (m), simplified
-% 					edp_E_interp_d_dmpa_u = edp_E_interp_d_dmpa / norm (edp_E_interp_d_dmpa, 2);
+					edp_EdotBz = - (edp_E_interp (1) * centerBeamB (1) + edp_E_interp (2) * centerBeamB (2)) / centerBeamB (3);
+					edp_EdotB_dmpa = [ edp_E_interp(1); edp_E_interp(2); edp_EdotBz ]
 
-% !!! what should this be?
-% 					edp_E_interp_d_bpp = DMPA2BPP * edp_E_interp_d_dmpa;
-% 					if (abs (edp_E_interp_d_bpp (3)) > 1.0e-4)  % we really need only this one...
-% 						warning ('|edp_E_interp_d_bpp_z| > 1.0e-4')
-% 					end
+					% v = E x B, but we want S*, the negative of the drift step, so we swap ExB ~> BxE ~> d = v * gyroPeriod
+					edp_EdotB_d_dmpa = ((cross (centerBeamB, edp_EdotB_dmpa) / centerBeamB2n^2 ) * C2V2T * gyroPeriod); % (m), simplified
+					edp_EdotB_d_bpp = DMPA2BPP * edp_EdotB_d_dmpa
+
+					if Use_OCS_plot
+						set (0, 'CurrentFigure', fDMPA_plot) % hDMPA_plotElements
+						hBPP_plotElements (10) = plot3 ( ...
+							edp_EdotB_d_dmpa (1), edp_EdotB_d_dmpa (2), edp_EdotB_d_dmpa (3), ...
+							'LineStyle', 'none', 'Marker', 'o', 'MarkerFaceColor', myOrange, 'MarkerEdgeColor', myOrange, 'MarkerSize', 5.0);
+					end
+
+					set (0, 'CurrentFigure', fBPP_plot) % hBPP_plotElements
+					hBPP_plotElements (10) = plot3 ( ...
+						edp_EdotB_d_bpp (1), edp_EdotB_d_bpp (2), edp_EdotB_d_bpp (3), ...
+						'LineStyle', 'none', 'Marker', 'o', 'MarkerFaceColor', myOrange, 'MarkerEdgeColor', myOrange, 'MarkerSize', 5.0);
 
 					edp_zoomStart = iEDP_t2kLO - 100;
 					edp_zoomStart = max (1, edp_zoomStart);
@@ -436,7 +441,7 @@ for BeamBracketIndex = (iiSorted_beam_t2k - beamsWindow) : (iiSorted_beam_t2k + 
 					MEEdrift_plot_EDP_zoomed_region
 
 				else
-					disp 'Warning!! Interpolating EFW data points more than 100 ms apart.'
+					disp 'Warning!! Interpolating EDP data points more than 100 ms apart.'
 					EDP_dataInRange = false;
 				end
 
@@ -471,10 +476,10 @@ if PlotBeamConvergence
 	end % 	if nTargetBeams > 1
 end % if PlotBeamConvergence
 
-if Use_OCS_plot
-	if (length (hDMPA_plotElements) > 9) hDMPA_plotElements (9:length (hDMPA_plotElements)) = []; end;
-end
-if (length (hBPP_plotElements) > 9) hBPP_plotElements (9:length (hBPP_plotElements)) = []; end;
+% if Use_OCS_plot
+% 	if (length (hDMPA_plotElements) > 9) hDMPA_plotElements (9:length (hDMPA_plotElements)) = []; end;
+% end
+% if (length (hBPP_plotElements) > 9) hBPP_plotElements (9:length (hBPP_plotElements)) = []; end;
 
 if Use_OCS_plot
 	set (0, 'CurrentFigure', fDMPA_plot) % hDMPA_plotElements
@@ -493,9 +498,6 @@ set (0, 'CurrentFigure', fBPP_plot) % hBPP_plotElements DMPA2BPP
 hDMPA__BPP_legendAxes = gca;
 p = hBPP_plotElements;
 PlotView = '2D';
-% 	MEEdrift_annotate_DMPA_BPP_plots
-% xlabel ('x')
-% ylabel ('y')
 
 figure (fBPP_plot);
 view ([   0 90 ]); % Azimuth, Elevation in degrees, std x-y plot
@@ -521,43 +523,17 @@ if EDP_dataInRange
 
 	figure (fBPP_plot);
 	view ([   0 90 ]); % Azimuth, Elevation in degrees, std x-y plot
-% 	TightFig;
 
-	% Update the EFW data plot index line
+	% Update the EDP data plot index line
 	figure (fEDP_plot);
 	axes (hEDP_mainAxes);
 	delete (hEDP_plot_index_line);
 	EDP_dataPlotIndexLine = centerBeam_dn;
-disp ( sprintf ('EDP_dataPlotIndexLine %s', datestr (EDP_dataPlotIndexLine, 'yyyy-mm-dd HH:MM:ss.fff') ) ) % V&V
-% 	datestr (centerBeam_dn, 'yyyy-mm-dd HH:MM:ss.fff') % V&V
+	% disp ( sprintf ('EDP_dataPlotIndexLine %s', datestr (EDP_dataPlotIndexLine, 'yyyy-mm-dd HH:MM:ss.fff') ) ) % V&V
+	% datestr (centerBeam_dn, 'yyyy-mm-dd HH:MM:ss.fff') % V&V
 	hold on
 	hEDP_plot_index_line = line ( [EDP_dataPlotIndexLine EDP_dataPlotIndexLine], get (hEDP_mainAxes, 'YLim'), 'Color', 'red' , 'LineStyle', '-' , 'LineWidth', 2);
 
-	% update EFWplotMagnifier here
-% 	iLeftMag_ssm  = max (1,                  find (edp_t2k >= (BdvE_dn - 4.0), 1) );
-% 	iRightMag_ssm = min (nEDP, find (edp_t2k >= (BdvE_dn + 4.0), 1) );
-
-% 	MMS_TimeMagSeries {1}  = (edp_t2k (1, iLeftMag_ssm: iRightMag_ssm)) / 86400.0; % make ssm (s) > DateNum (fractional days)
-% 	MMS_DataMagSeries {1}  = edp_E3D_dsl  (:, iLeftMag_ssm: iRightMag_ssm);
-
-% 	if SmoothData
-% 		MMS_DataMagSeriesf {1} = EFW_L2_E2Df (:, iLeftMag_ssm: iRightMag_ssm);
-% 	else
-% 		MMS_DataMagSeriesf {1} = edp_E3D_dsl (:, iLeftMag_ssm: iRightMag_ssm);
-% 	end
-
-% 	axes (hEFWsubplotMagAxes);
-% 	delete (hEFWplotMag);
-% 	hEFWplotMag = plot (hEFWsubplotMagAxes, MMS_TimeMagSeries {1}, MMS_DataMagSeries {1}, MMS_TimeMagSeries {1}, MMS_DataMagSeriesf {1}, 'LineStyle', '-', 'Marker', '.', 'MarkerSize', 2);
-
-% 	DateStartMag = MMS_TimeMagSeries {1} (1);
-% 	DateEndMag   = MMS_TimeMagSeries {1} (end);
-% 	xlim ([DateStartMag DateEndMag]);
-% 	xTickData = linspace (DateStartMag, DateEndMag, 5);
-% 	set (gca, 'XTick', xTickData);
-% 	datetick ('x', 'HH:MM:SS','keepticks', 'keeplimits');
-% 	ZoomDateTicks ('on');
-%}
 else
   disp 'Warning!!! No EDP coordinated data in range!!!'
 end

@@ -1,6 +1,14 @@
 %{
 	Name: MEEdrift
-	Description: Correct EFW E-field measurements based on EDI measurements
+	Description: Compare EDP E-field measurements with calculated EDI E-fields
+
+	2015-002 ~ v02.01.00:
+	 ~ Multiply each EDP component by the Fahleson factor, 1.0/0.7.
+	   Provide EDP multiplication factors for xyz.
+	 ~ Remove a 2 mV/m sunward offset from Ex. Use existing EDPxyz offsets.
+	 ~ Multiply Ez by -1. Use existing EDP multiplication factors.
+	 ~ Add check box for displaying E.B=0 ~> S* = cross (centerBeamB, edp_EdotB_dmpa).
+	 ~ Add OCS, BPP axes max field to control panel.
 
 	2015-08-28 ~ v02.00.00:
 	 ~ Remove reentrancy.
@@ -65,7 +73,7 @@
 	In MATLAB, a vector is a one-dimensional array and a matrix is a two-dimensional array.
 	MDAa are created by extending 2D arrays; e.g., [:, :, n, ...].
 		For example: (3, 2, 5, nEDP) =
-			a 3D vector, for each of 2 intersecting beams, for up to 5 matches, for each EFW event
+			a 3D vector, for each of 2 intersecting beams, for up to 5 matches, for each EDP event
 	MEEdrift 1D row or col vectors are addressed simply by V (i).
 	MEEdrift 2D & 3D vectors are considered column vectors; e.g., V = [ v1 v2 ...], where each vector is v1 = [ v11; v12; ... ],
 	unless noted.

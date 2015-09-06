@@ -41,6 +41,11 @@ function varargout = MEEdrift_main_menu (varargin)
 %   *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
 %   instance to run (singleton)".
 %
+%   In object functions below:
+%   hObject    handle to uic_eOCS_BPP_axisMax (see GCBO)
+%   eventdata  reserved - to be defined in a future version of MATLAB
+%   handles    created //after all// CreateFcns called
+%
 % See also: GUIDE, GUIDATA, GUIHANDLES
 
 % Edit the above text to modify the response to help MEEdrift_main_menu

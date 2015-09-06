@@ -41,6 +41,13 @@ edp_E3D_Q
 edp_dn = spdftt2000todatenum (edp_t2k)
 edp_E3D_dsl = edp_E3D_dsl_r'               3 x n
 
+Apply offsets
+clear edp_E3D_dsl
+edp_E3D_dsl = bsxfun (@plus, edp_E3D_dsl_r, EDP_offset); %  n x 3
+edp_E3D_dsl = bsxfun (@times, edp_E3D_dsl, EDP_Xfactor); %  n x 3
+edp_E3D_dsl = edp_E3D_dsl';
+
+
 EDP data smoothing
 Note here that
 1) edp_E3D_dsl_r is nx3, and is the original.

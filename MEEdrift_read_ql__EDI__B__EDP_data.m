@@ -14,7 +14,7 @@ if UseFileOpenGUI
 	end
 end
 
-obsID = mms_ql__EDI__BdvE__dataFile (4:4);
+obsID = mms_ql__EDI__BdvE__dataFile (4:4)
 YYYY  = str2num (mms_ql__EDI__BdvE__dataFile (30:33));
 MM    = str2num (mms_ql__EDI__BdvE__dataFile (34:35));
 DD    = str2num (mms_ql__EDI__BdvE__dataFile (36:37));
@@ -110,9 +110,9 @@ if ~isequal (mms_ql__EDI__BdvE__dataFile, 0) % then a valid [we hope] file selec
 	gd12_xref2_B = spdfcdfread (mms_ql__EDI__BdvE__data, ...
 		'CombineRecords',        true, ...
 		'Variable',              ['mms', obsID, '_edi_recnum_gd12']);
-% 	edi_gd12_quality = spdfcdfread (mms_ql__EDI__BdvE__data, ...
-% 		'CombineRecords',        true, ...
-% 		'Variable',              ['mms', obsID, '_edi_beam_quality_gd12']);
+	% 	edi_gd12_quality = spdfcdfread (mms_ql__EDI__BdvE__data, ...
+	% 		'CombineRecords',        true, ...
+	% 		'Variable',              ['mms', obsID, '_edi_beam_quality_gd12']);
 	disp 'Date range of gd12_beam_t2k'
 	[ datestr(spdftt2000todatenum(gd12_beam_t2k(1)),   'yyyy-mm-dd HH:MM:ss'), ' ',...
 	  datestr(spdftt2000todatenum(gd12_beam_t2k(end)), 'yyyy-mm-dd HH:MM:ss') ]
@@ -132,9 +132,9 @@ if ~isequal (mms_ql__EDI__BdvE__dataFile, 0) % then a valid [we hope] file selec
 	gd21_xref2_B = spdfcdfread (mms_ql__EDI__BdvE__data, ...
 		'CombineRecords',        true, ...
 		'Variable',              ['mms', obsID, '_edi_recnum_gd21']);
-% 	edi_gd21_quality = spdfcdfread (mms_ql__EDI__BdvE__data, ...
-% 		'CombineRecords',        true, ...
-% 		'Variable',              ['mms', obsID, '_edi_beam_quality_gd21']);
+	% 	edi_gd21_quality = spdfcdfread (mms_ql__EDI__BdvE__data, ...
+	% 		'CombineRecords',        true, ...
+	% 		'Variable',              ['mms', obsID, '_edi_beam_quality_gd21']);
 	disp 'Date range of gd21_beam_t2k'
 	[ datestr(spdftt2000todatenum(gd21_beam_t2k(1)),   'yyyy-mm-dd HH:MM:ss'), ' ',...
 	  datestr(spdftt2000todatenum(gd21_beam_t2k(end)), 'yyyy-mm-dd HH:MM:ss') ]
@@ -188,8 +188,8 @@ if ~isequal (mms_ql__EDI__BdvE__dataFile, 0) % then a valid [we hope] file selec
 	% Then create index of time, sorted in ascending order. Scroll thru the data
 	% during analysis, using the sorted time index.
 
-% 	clear edi_gd12_quality % we use it only to filter initially
-% 	clear edi_gd21_quality
+	% 	clear edi_gd12_quality % we use it only to filter initially
+	% 	clear edi_gd21_quality
 
 	% Now is the time to change from nx3 data to 3xn, where applicable
 	gd_beam_t2k = [ gd12_beam_t2k; gd21_beam_t2k ];
@@ -238,7 +238,7 @@ if ~isequal (mms_ql__EDI__BdvE__dataFile, 0) % then a valid [we hope] file selec
 		% ~~~~~~~~~~~~~~~~~~~ DC E-field
 		edp_t2k = spdfcdfread (mms_ql__EDP_data, ...
 			'CombineRecords',        true, ...
-			'Variable',              'mms2_edp_dce_epoch', ...
+			'Variable',              ['mms', obsID, '_edp_dce_epoch'], ...
 			'ConvertEpochToDatenum', false, ...
 			'KeepEpochAsIs',         true);
 		% Electric field in DSL coordinates (DSL ~= DMPA ~= DBCS)
@@ -255,14 +255,14 @@ if ~isequal (mms_ql__EDI__BdvE__dataFile, 0) % then a valid [we hope] file selec
 		idceFillVal = find (edp_E3D_dsl_r (:, 1) == dce_xyz_dsl_fillVal);
 		edp_E3D_dsl_r (idceFillVal, :) = [];
 		edp_t2k       (idceFillVal)    = [];
-% 		edp_E3D_Q   (idceFillVal)    = [];
+		% 		edp_E3D_Q   (idceFillVal)    = [];
 
-% 		iE3D_Q = find (edp_E3D_Q < 3); % 2015-07-30 they are all 0
+		% 		iE3D_Q = find (edp_E3D_Q < 3); % 2015-07-30 they are all 0
 
 		edp_dn = spdftt2000todatenum (edp_t2k);
-% 		disp 'Date range of edp_t2k'
-% 		[ datestr(spdftt2000todatenum(edp_t2k(1)),   'yyyy-mm-dd HH:MM:ss'), ' ',...
-% 		  datestr(spdftt2000todatenum(edp_t2k(end)), 'yyyy-mm-dd HH:MM:ss') ]
+		% 		disp 'Date range of edp_t2k'
+		% 		[ datestr(spdftt2000todatenum(edp_t2k(1)),   'yyyy-mm-dd HH:MM:ss'), ' ',...
+		% 		  datestr(spdftt2000todatenum(edp_t2k(end)), 'yyyy-mm-dd HH:MM:ss') ]
 
 		% keep EDP data that is in the range of EDI data
 		iEDP_lt_EDI = find (edp_dn < BdvE_dn (1));
@@ -271,13 +271,13 @@ if ~isequal (mms_ql__EDI__BdvE__dataFile, 0) % then a valid [we hope] file selec
 
 		edp_E3D_dsl_r (iEDP_EDI_noMatch, :) = [];
 		edp_t2k       (iEDP_EDI_noMatch) = [];
-% 		edp_E3D_Q     (iEDP_EDI_noMatch) = [];
+	% 		edp_E3D_Q     (iEDP_EDI_noMatch) = [];
 		edp_dn        (iEDP_EDI_noMatch) = [];
 
 		% edp_E3D_dsl assigned edp_E3D_dsl_r as first choice for calcs
 		edp_E3D_dsl = edp_E3D_dsl_r';
-% 		edp_E3D_Q   = edp_E3D_Q;
-% 		edp_dn      = edp_dn;
+	% 		edp_E3D_Q   = edp_E3D_Q;
+	% 		edp_dn      = edp_dn;
 
 		disp 'Date range of edp_t2k'
 		[ datestr(spdftt2000todatenum(edp_t2k(1)),   'yyyy-mm-dd HH:MM:ss'), ' ',...

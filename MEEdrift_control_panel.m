@@ -39,11 +39,16 @@ function varargout = MEEdrift_control_panel (varargin)
 %   *See GUI Options on GUIDE's Tools menu.  Choose "GUI allows only one
 %   instance to run (singleton)".
 %
+%   In object functions below:
+%   hObject    handle to uic_eOCS_BPP_axisMax (see GCBO)
+%   eventdata  reserved - to be defined in a future version of MATLAB
+%   handles    created //after all// CreateFcns called
+%
 % See also: GUIDE, GUIDATA, GUIHANDLES
 
 % Edit the above text to modify the response to help MEEdrift_control_panel
 
-% Last Modified by GUIDE v2.5 28-Aug-2015 08:56:38
+% Last Modified by GUIDE v2.5 03-Sep-2015 08:08:18
 
 % Begin initialization code - DO NOT EDIT
 	gui_Singleton = 1;
@@ -91,22 +96,41 @@ function MEEdrift_control_panel_OpeningFcn (hObject, eventdata, handles, varargi
 	global EDPx_offset;
 	global EDPy_offset;
 	global EDPz_offset;
+	global EDPx_factor;
+  global EDPy_factor;
+  global EDPz_factor;
 	global EDP_plot_ylim;
+	global OCS_BPP_axisMax;
+
+% EDP_offset = [ EDPx_offset EDPy_offset EDPz_offset ]
+% EDP_offset = [ 1.0 1.0 1.0 ]
+% num2str (EDPx_offset)
+% EDP_Xfactor = [ EDPx_factor EDPy_factor EDPz_factor ]
 
 	fControlPanel = hObject;
 	set (handles.uic_txtTitle, 'String', [ 'MEEdrift ' dotVersion ]);
 	set (handles.uic_eBeamsWindow, 'String', num2str (beamsWindow));
 	set (handles.uic_eBeamWindowSecs, 'String', num2str (beamWindowSecs));
+
 	set (handles.uic_cbPlotBeamConvergence, 'Value', PlotBeamConvergence);
 	set (handles.uic_cbPlotIntersectDots, 'Value', PlotIntersectDots);
+
 	set (handles.uic_cbSmoothData, 'Value', SmoothData);
 	set (handles.uic_eSmoothingSpan, 'String', num2str (SmoothingSpan));
 	set (handles.uic_cbUseSmoothedData, 'Value', UseSmoothedData);
+
 	set (handles.uic_cbUse_OCS_plot, 'Value', Use_OCS_plot);
-	set (handles.uic_eEDPx_Offset, 'String', num2str (EDPx_offset));
-	set (handles.uic_eEDPy_Offset, 'String', num2str (EDPy_offset));
-	set (handles.uic_eEDPz_Offset, 'String', num2str (EDPz_offset));
+
+	set (handles.uic_eEDPx_offset, 'String', num2str (EDPx_offset));
+	set (handles.uic_eEDPy_offset, 'String', num2str (EDPy_offset));
+	set (handles.uic_eEDPz_offset, 'String', num2str (EDPz_offset));
+
+	set (handles.uic_eEDPx_XFactor, 'String', num2str (EDPx_factor));
+	set (handles.uic_eEDPy_XFactor, 'String', num2str (EDPy_factor));
+	set (handles.uic_eEDPz_XFactor, 'String', num2str (EDPz_factor));
+
 	set (handles.uic_eEDP_plot_ylim, 'String', num2str (EDP_plot_ylim));
+	set (handles.uic_eOCS_BPP_axisMax, 'String', num2str (OCS_BPP_axisMax));
 
 	% UIWAIT makes MEEdrift_control_panel wait for user response (see UIRESUME)
 	% uiwait (handles.figure1);
@@ -123,7 +147,7 @@ end
 % ~~~~~~~~~~~~~~~~~~~
 function uic_eBeamsWindow_Callback (hObject, eventdata, handles)
 	% Hints: get (hObject, 'String') returns contents of uic_eBeamsWindow as text
-%        str2double (get (hObject, 'String')) returns contents of uic_eBeamsWindow as a double
+	%        str2double (get (hObject, 'String')) returns contents of uic_eBeamsWindow as a double
 	str = get (hObject, 'String');
 	if ismember (str, '45678')
 		n = str2double (str)
@@ -243,7 +267,7 @@ function uic_eSmoothingSpan_CreateFcn (hObject, eventdata, handles)
 end
 
 % ~~~~~~~~~~~~~~~~~~~
-function uic_eEDPx_Offset_Callback (hObject, eventdata, handles)
+function uic_eEDPx_offset_Callback (hObject, eventdata, handles)
 	% Hints: get (hObject, 'String') returns contents of uic_eEDP_xOffset as text
 	%        str2double (get (hObject, 'String')) returns contents of uic_eEDP_xOffset as a double
 	global EDPx_offset;
@@ -260,14 +284,14 @@ end
 
 % ~~~~~~~~~~~~~~~~~~~
 % --- Executes during object creation, after setting all properties.
-function uic_eEDPx_Offset_CreateFcn (hObject, eventdata, handles)
+function uic_eEDPx_offset_CreateFcn (hObject, eventdata, handles)
 	if ispc && isequal (get (hObject, 'BackgroundColor'), get (0, 'defaultUicontrolBackgroundColor'))
 		set (hObject, 'BackgroundColor', 'white');
 	end
 end
 
 % ~~~~~~~~~~~~~~~~~~~
-function uic_eEDPy_Offset_Callback (hObject, eventdata, handles)
+function uic_eEDPy_offset_Callback (hObject, eventdata, handles)
 	% Hints: get (hObject, 'String') returns contents of uic_eEDP_yOffset as text
 	%        str2double (get (hObject, 'String')) returns contents of uic_eEDP_yOffset as a double
 	global EDPy_offset;
@@ -284,14 +308,14 @@ end
 
 % ~~~~~~~~~~~~~~~~~~~
 % --- Executes during object creation, after setting all properties.
-function uic_eEDPy_Offset_CreateFcn (hObject, eventdata, handles)
+function uic_eEDPy_offset_CreateFcn (hObject, eventdata, handles)
 	if ispc && isequal (get (hObject, 'BackgroundColor'), get (0, 'defaultUicontrolBackgroundColor'))
 	  set (hObject, 'BackgroundColor', 'white');
 	end
 end
 
 % ~~~~~~~~~~~~~~~~~~~
-function uic_eEDPz_Offset_Callback (hObject, eventdata, handles)
+function uic_eEDPz_offset_Callback (hObject, eventdata, handles)
 	% Hints: get (hObject, 'String') returns contents of uic_eEDP_zOffset as text
 	%        str2double (get (hObject, 'String')) returns contents of uic_eEDP_zOffset as a double
 	global EDPz_offset;
@@ -307,9 +331,9 @@ function uic_eEDPz_Offset_Callback (hObject, eventdata, handles)
 end
 
 % ~~~~~~~~~~~~~~~~~~~
-function uic_eEDPz_Offset_CreateFcn (hObject, eventdata, handles)
+function uic_eEDPz_offset_CreateFcn (hObject, eventdata, handles)
 	if ispc && isequal (get (hObject, 'BackgroundColor'), get (0, 'defaultUicontrolBackgroundColor'))
-	  set (hObject, 'BackgroundColor', 'white');
+		set (hObject, 'BackgroundColor', 'white');
 	end
 end
 
@@ -320,6 +344,7 @@ function uic_eEDP_plot_ylim_Callback (hObject, eventdata, handles)
 
 	global hEDP_mainAxes;
 	global hEDP_zoomedAxes;
+	global EDP_plot_ylim;
 
 	ylim_ = str2double (get (hObject, 'String'));
 	if ~isnan (ylim_)
@@ -338,7 +363,112 @@ end
 
 % ~~~~~~~~~~~~~~~~~~~
 function uic_eEDP_plot_ylim_CreateFcn (hObject, eventdata, handles)
-	if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+	if ispc && isequal (get (hObject, 'BackgroundColor'), get (0, 'defaultUicontrolBackgroundColor'))
 		set (hObject, 'BackgroundColor', 'white');
+	end
+end
+
+% ~~~~~~~~~~~~~~~~~~~
+function uic_eEDPx_XFactor_Callback (hObject, eventdata, handles)
+	% Hints: get(hObject,'String') returns contents of uic_eEDPx_XFactor as text
+	%        str2double(get(hObject,'String')) returns contents of uic_eEDPx_XFactor as a double
+	global EDPx_factor;
+	factor = str2double (get (hObject, 'String'));
+	if ~isnan (factor)
+		if (factor > -2.0) && (factor < 2.0) % arbitrary limits
+			EDPx_factor = factor;
+			set (hObject, 'String', num2str (factor));
+		else
+			warndlg ('EDPz_factor must be [-2.0 .. 2.0].');
+		end
+	end
+end
+
+% ~~~~~~~~~~~~~~~~~~~
+% --- Executes during object creation, after setting all properties.
+function uic_eEDPx_XFactor_CreateFcn (hObject, eventdata, handles)
+	% Hint: edit controls usually have a white background on Windows.
+	%       See ISPC and COMPUTER.
+	if ispc && isequal (get (hObject, 'BackgroundColor'), get (0, 'defaultUicontrolBackgroundColor'))
+		set (hObject, 'BackgroundColor', 'white');
+	end
+end
+
+% ~~~~~~~~~~~~~~~~~~~
+function uic_eEDPy_XFactor_Callback (hObject, eventdata, handles)
+	% Hints: get(hObject,'String') returns contents of uic_eEDPy_XFactor as text
+	%        str2double(get(hObject,'String')) returns contents of uic_eEDPy_XFactor as a double
+	global EDPy_factor;
+	factor = str2double (get (hObject, 'String'));
+	if ~isnan (factor)
+		if (factor > -2.0) && (factor < 2.0) % arbitrary limits
+			EDPy_factor = factor;
+			set (hObject, 'String', num2str (factor));
+		else
+			warndlg ('EDPz_factor must be [-2.0 .. 2.0].');
+		end
+	end
+end
+
+
+% ~~~~~~~~~~~~~~~~~~~
+% --- Executes during object creation, after setting all properties.
+function uic_eEDPy_XFactor_CreateFcn (hObject, eventdata, handles)
+	% Hint: edit controls usually have a white background on Windows.
+	%       See ISPC and COMPUTER.
+	if ispc && isequal (get (hObject, 'BackgroundColor'), get (0, 'defaultUicontrolBackgroundColor'))
+		set (hObject, 'BackgroundColor', 'white');
+	end
+end
+
+% ~~~~~~~~~~~~~~~~~~~
+function uic_eEDPz_XFactor_Callback (hObject, eventdata, handles)
+	% Hints: get(hObject,'String') returns contents of uic_eEDPz_XFactor as text
+	%        str2double(get(hObject,'String')) returns contents of uic_eEDPz_XFactor as a double
+	global EDPz_factor;
+	factor = str2double (get (hObject, 'String'));
+	if ~isnan (factor)
+		if (factor > -2.0) && (factor < 2.0) % arbitrary limits
+			EDPz_factor = factor;
+			set (hObject, 'String', num2str (factor));
+		else
+			warndlg ('EDPz_factor must be [-2.0 .. 2.0].');
+		end
+	end
+end
+
+% ~~~~~~~~~~~~~~~~~~~
+% --- Executes during object creation, after setting all properties.
+function uic_eEDPz_XFactor_CreateFcn (hObject, eventdata, handles)
+	% Hint: edit controls usually have a white background on Windows.
+	%       See ISPC and COMPUTER.
+	if ispc && isequal (get (hObject, 'BackgroundColor'), get (0, 'defaultUicontrolBackgroundColor'))
+		set (hObject, 'BackgroundColor', 'white');
+	end
+end
+
+% ~~~~~~~~~~~~~~~~~~~
+function uic_eOCS_BPP_axisMax_Callback(hObject, eventdata, handles)
+	% Hints: get(hObject,'String') returns contents of uic_eOCS_BPP_axisMax as text
+	%        str2double(get(hObject,'String')) returns contents of uic_eOCS_BPP_axisMax as a double
+	global OCS_BPP_axisMax;
+	axisMax = str2double (get (hObject, 'String'));
+	if ~isnan (axisMax)
+		if (axisMax > 3.0) && (axisMax < 100.0) % arbitrary limits
+			OCS_BPP_axisMax = axisMax;
+			set (hObject, 'String', num2str (axisMax));
+		else
+			warndlg ('OCS & BPP axis limits must be [4 .. 99].');
+		end
+	end
+end
+
+% ~~~~~~~~~~~~~~~~~~~
+% --- Executes during object creation, after setting all properties.
+function uic_eOCS_BPP_axisMax_CreateFcn(hObject, eventdata, handles)
+	% Hint: edit controls usually have a white background on Windows.
+	%       See ISPC and COMPUTER.
+	if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+	    set(hObject,'BackgroundColor','white');
 	end
 end

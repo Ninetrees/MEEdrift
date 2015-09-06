@@ -1,13 +1,24 @@
-% EDI_beams_and_virtual_source_demo_0100.m
+% EDI_beams_and_virtual_source_demo_0101.m
 %
 % Purpose
+% Demonstrate how beams are fired from either of two MMS Electron Drift
+% Instrument (EDI) gun-dectector units (GDU) and detected by the other.
+% Show how the intersection of the beams relates to the electric field 
+% drift step. Show how the virtual observatory relates to the real
+% observatory, and how the intersection of fired beams at the virtual
+% source S* is the negative drift step vector in the B-field Perpendicular
+% Plane (BPP).
 %
+% First one gun fires a sweeping beam until it hits the other GDU's detector.
+% Then the other gun fires a sweeping beam umtil it hits the first GDU's
+% detector. The plot is originally zoomed out to show actual beam paths based
+% on real plasma values recorded by observatories. After two beams are
+% detected, the plot zooms in to show the real and virtual observatories in
+% scaled to show the real and virtual observatories and S*.
 %
-%
-%
-%
-%
-%
+% Clicking on the plot advances the demo. It eventually finds several sets of
+% firing vector combinations from both GDUs that result in a virtual beam
+% intersection at S*, an estimate of the drift step.
 %
 % Calling Sequence
 %   None
@@ -39,7 +50,7 @@ Ey = 7.87177e-3    % electric field strength (in the GDU1_beamY-direction), mV/m
 GDU1y = -1.6;
 GDU2y = +1.6;
 
-gyroPeriod = (twoPi * e_mass) / (q * Bz)
+gyroPeriod = (twoPi * mass_e) / (q * Bz)
 % Introduction to Plasma Physics and Controlled Fusion Plasma Physics 2E. Chen.pdf
 % [2-13] to [2-16]
 % If E lies in the B-perp plane, E + v x B = 0
@@ -55,10 +66,8 @@ t          =  (0: 0.00001: 1.001) * gyroPeriod;  % time range, finer detail give
 scRadius   = 1.6;
 vd_x       = Ey/Bz;            % drift velocity 2.559068e3 m/s; specifically in x for this case
 ve         = v_1keV_electron;
-w          = -q * Bz / e_mass; % gyrofrequency (note, can be negative for electron)
+w          = -q * Bz / mass_e; % gyrofrequency (note, can be negative for electron)
 zeroTol    = 0.05;             % guess a reasonable threshold for intersection determination
-
-fg = w / twoPi; % Hertz, 1/Tg
 
 GDU_planeInICS = zeros (3, 361, 'double');
 for theta = 0:1:360
@@ -118,6 +127,9 @@ set (gca, 'Fontname', 'Times')
 hICS_plotElements (1) = plot3 (GDU_planeInICS (1,:), GDU_planeInICS (2,:), GDU_planeInICS (3,:),...
 	'LineStyle', '-', 'LineWidth', 1.0, 'Color', myDarkGreen);
 
+hICS_plotElements (2) = plot3 (2.0*GDU_planeInICS (1,:), 2.0*GDU_planeInICS (2,:), 2.0*GDU_planeInICS (3,:),...
+	'LineStyle', '--', 'LineWidth', 1.0, 'Color', myDarkBlue);
+
 strAngles = 'EDI intersection angles: ';
 strTitle = { ...
 	[ 'Click to step through drift step demo' ];
@@ -131,7 +143,7 @@ hold on
 
 GDU1_lastAngle = 0.0; % initialize so that loop works first time through
 
-% GDU1 is @ (0,-1.6), so the firing angles start @ 180°, and sweep CW away from the obs
+% GDU1 is @ (0,-1.6), so the firing angles start @ 180°, and sweep CCW away from the obs
 for GDU1_firingAngle = 180.0: 360.0
 	vx = ve * cosd (GDU1_firingAngle); % initial vx for this firing angle
 	vy = ve * sind (GDU1_firingAngle); % initial vy
@@ -165,8 +177,8 @@ for GDU1_firingAngle = 180.0: 360.0
 
 	pause (0.005)
 	iOffset = 50;
-% 	ix = find (abs(GDU1_beamX(iOffset:end)) < zeroTol); % these are for finding hits on the same GDU
-% 	iy = find (abs(GDU1_beamY(iOffset:end) + 1.6) < zeroTol);
+	% ix = find (abs(GDU1_beamX(iOffset:end)) < zeroTol); % these are for finding hits on the same GDU
+	% iy = find (abs(GDU1_beamY(iOffset:end) + 1.6) < zeroTol);
 	ix = find (abs(GDU1_beamX(iOffset:end)) < zeroTol); % Find when detected by GDU1
 	iy = find (abs(GDU1_beamY(iOffset:end) - GDU2y) < zeroTol);             % GDU1_firingAngles: GDU1 =  129°, 309.5°, GDU2 = 51°, 230.5°
 
@@ -192,10 +204,11 @@ for GDU1_firingAngle = 180.0: 360.0
 
 			% PlotGDU2
 			GDU2_lastAngle = 0.0;
+
+			% GDU2 is @ (0,+1.6), so the firing angles start @ 0°, and sweep CCW away from the obs
 			for GDU2_firingAngle = 0.0: 180.0 %nAngles
-% 				GDU2_firingAngle = j / nAngles * twoPi;
-				vx = ve * cosd (GDU2_firingAngle);         % updated initial vx
-				vy = ve * sind (GDU2_firingAngle);         % updated initial vy
+				vx = ve * cosd (GDU2_firingAngle);
+				vy = ve * sind (GDU2_firingAngle);
 
 				% Parametric equations of motion (Griffiths, Intro to Electrodynamics, 3E, (5.6):
 				C1 = -vy/w; C3 = -C1;

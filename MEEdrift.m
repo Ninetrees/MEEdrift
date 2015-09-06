@@ -7,9 +7,9 @@ clear variables
 close all       % close all figures
 
 global Project_;             Project_            = 'MMS_EDI_EDP_driftstep';
-global dotVersion;           dotVersion          = 'v2.00.00';
-global beamsWindow;          beamsWindow         = 8; % n, NOTE !!!! ± beamsWindow before|after center beam time
-global beamWindowSecs;       beamWindowSecs      = 4; % (s), NOTE !!!! ± beamWindowSecs before|after center beam time
+global dotVersion;           dotVersion          = 'v2.01.00';
+global beamsWindow;          beamsWindow         = 4; % n, NOTE !!!! ± beamsWindow before|after center beam time
+global beamWindowSecs;       beamWindowSecs      = 2; % (s), NOTE !!!! ± beamWindowSecs before|after center beam time
 global ControlPanelActive;   ControlPanelActive  = false; % control panel can be open even if the main menu closes
 global PlotBeamConvergence;  PlotBeamConvergence = false; % Calculate and plot S* from displayed beams
 global PlotIntersectDots;    PlotIntersectDots   = false; % Calculate and plot S* from displayed beams
@@ -23,17 +23,22 @@ beamWindowDays = beamWindowSecs / 86400.0; % Convert from seconds to days; to co
 sinx_wt_Q_xovr_angles = [ 8.0 30 ];
 global sinx_wt_Q_xovr;       sinx_wt_Q_xovr      = sind (sinx_wt_Q_xovr_angles).^4.0; % breakpoints for quality ranges for sin^x weighting
 
-global EDPx_offset;          EDPx_offset         = 0.0; % mV, applied to EDP data to shift it
+global EDPx_offset;          EDPx_offset         = -2.0; % mV, applied to EDP data to shift it
 global EDPy_offset;          EDPy_offset         = 0.0;
 global EDPz_offset;          EDPz_offset         = 0.0;
 
+global EDPx_factor;          EDPx_factor         =  1.0/0.7; % Fahleson factor?
+global EDPy_factor;          EDPy_factor         =  1.0/0.7;
+global EDPz_factor;          EDPz_factor         = -1.0/0.7; % Fahleson factor? + flip sign of Ez
+
 global SmoothData;           SmoothData          = false;
 global UseSmoothedData;      UseSmoothedData     = false;
-global SmoothingSpan;        SmoothingSpan       = 11; % Must be odd
+global SmoothingSpan;        SmoothingSpan       = 13; % Must be odd
 
 global hEDP_mainAxes;
 global hEDP_zoomedAxes;
-global EDP_plot_ylim;        EDP_plot_ylim       = 50;
+global EDP_plot_ylim;        EDP_plot_ylim       = 99;
+global OCS_BPP_axisMax;      OCS_BPP_axisMax     = 6;
 
 TestMode = false; % true false
 
@@ -43,21 +48,25 @@ myLibScienceConstants
 
 MEEdrift_create_figures
 
-% MMS Phase 1 orbits (19 000 to 119 000 kilometres from the planet)
-% MMS speed @ perigee @ 19000 km ~= 3964 m/s    @ apogee @ 119000 km ~= 1784 m/s
-% Distance spacecraft moves in gyroPeriod of 0.00023835 s @ 3000 m/s ~= 0.715 m
-% MMS spacecraft mass at launch 1,200 kilograms
-
-% The flight software on MMS adjusts the beam firing direction within BPP
-% by 0.9? degrees every 3.9? milliseconds. The numbers are approximate, but good enough
-% for the purpose of adjusting the beam angular uncertainty for multi-runners.
-% @ 0.05 Hz -> 360°/20s -> 18°/s -> ??0.3515°/3.906 ms
-% - actual stepping size: ??arctan (1/64) =~ 0.895 degrees in 0.015625 s
-% - processing loop period: ??1/256 seconds =~ 3.906 ms
 mmsRPM           = 3.0; % nominal, 1 spin ~20 s. 0.05 Hz
 mmsSpinPeriod    = 20.0; % seconds, nominal
 EDP_sampleFreq   = 128.0; % samples per second
 EDP_samplePeriod = 1.0 / 128.0; % seconds per sample
+
+% MMS Phase 1 orbits:
+% HEO (Highly Elliptical Orbit) of 1.2 RE (perigee) x 12 RE (apogee),
+% Perigee: 7645 km (1274 net) | Apogee: 76452 km (70080 net)
+% Inclination: 28.77 deg | Flight Azimuth: 99.0 deg
+% Note: 1 RE ~= 6371 km.
+% MMS observatory mass at launch 1200 kg.
+MMS_apogee  = 12.0 * Re;
+MMS_perigee = 1.20 * Re;
+% At apogee, we trade KE for PE, so v_apogee < v_perigee
+MMS_speed_apogee  = sqrt ( (2 * GM * MMS_perigee) / (MMS_apogee * (MMS_apogee + MMS_perigee)) ); % ~ 973  m/s
+MMS_speed_perigee = sqrt ( (2 * GM * MMS_apogee) / (MMS_perigee * (MMS_apogee + MMS_perigee)) ); % ~ 9736 m/s
+% Distance spacecraft moves in gyroPeriod of 0.00023835 s
+% apogee: ~= 0.232 m, perigee ~= 2.32 m
+
 GDUz_loc = 0.0;
 
 % See 'MMS Hardware and Data Processing notes.txt'
@@ -72,8 +81,8 @@ for theta = 0:1:360
 	instrPlaneDMPA (:, theta+1) = mmsEDI_VirtualRadius * [ cosd(theta); sind(theta); 0.0 ];
 end
 
-BeamCoordsX  = -8: 0.01: 8;
-Beam_z       = zeros (1, size (BeamCoordsX, 2), 'double');
+BeamCoordsX = -8: 0.01: 8;
+Beam_z      = zeros (1, size (BeamCoordsX, 2), 'double');
 
 % default 1; ii = index into index, a doubly-dereferenced pointer
 % iiSorted_beam_t2k is used to scroll through iSorted_beam_t2k in linear
@@ -149,129 +158,102 @@ if ScrollData
 			MEEdrift_plot_beams
 		end
 
-% 		Default_UIControlFontSize = get (0, 'DefaultUIControlFontSize');
-% 		set (0, 'DefaultUIControlFontSize', 12)
-% 		ListCaptions = { ...
-% 			'< Beam <', ...
-% 			'> Beam >', ...
-% 			'Skip via EDP', ...
-% 			'Save Plots', ...
-% 			'Save Snapshot', ...
-% 			'Toggle DMPA <> BPP', ...
-% 			'FFT plots of EFW x,y', ...
-% 			strPlotBeamDots};
+		MEEdrift_main_menu
 
-% 		[Selection, OK] = listdlg ( ...
-% 			'Name', '', ...
-% 			'PromptString', 'Select One Operation', ...
-% 			'SelectionMode', 'single', ...
-% 			'CancelString', 'Quit', ...
-% 			'InitialValue', [Selection], ...
-% 			'ListSize', [ 220 220 ], ...
-% 			'ListString', ListCaptions);
-% 		set (0, 'DefaultUIControlFontSize', Default_UIControlFontSize);
+		switch strMainMenu
+			case 'Apply EDP Offsets'
+				MEEdrift_apply_EDP_offsets
 
-% 		if OK == 1
-% 			strSelection = ListCaptions {Selection};
-			MEEdrift_main_menu
-% 			if mainMenuTriggered
+		  case '< Beam <'
+				iiSorted_beam_t2k = max (1, iiSorted_beam_t2k-1);
 
-			switch strMainMenu
-				case 'Apply EDP Offsets'
-					MEEdrift_apply_EDP_offsets
+			case '> Beam >'
+				iiSorted_beam_t2k = min (nBeams, iiSorted_beam_t2k+1);
 
-			  case '< Beam <'
-					iiSorted_beam_t2k = max (1, iiSorted_beam_t2k-1);
+			case 'Skip via EDP'
+				figure (fEDP_plot);
+				[edp_timeIndex, mV] = ginput (1); % time axis is in datenum, E-field in mV
+				last_iiSorted_beam_t2k = iiSorted_beam_t2k;
+				if ~isempty (edp_timeIndex)
+					% Go to the nearest EDI record that is in the neighborhood of this EDP record
+					% Note the switch from EDP to EDI here
+					% disp ( sprintf ('Skip via EDP: edp_timeIndex: s%', datestr (edp_timeIndex, 'yyyy-mm-dd HH:MM:ss.fff') ) ) % V&V
+					iedi_timeIndex = find (gd_beam_dn > edp_timeIndex, 1);
+					% disp ( sprintf ('Skip via EDP: gd_beam_dn %s', datestr (gd_beam_dn (iedi_timeIndex), 'yyyy-mm-dd HH:MM:ss.fff') ) ) % V&V
 
-				case '> Beam >'
-					iiSorted_beam_t2k = min (nBeams, iiSorted_beam_t2k+1);
-
-				case 'Skip via EDP'
-					figure (fEDP_plot);
-					[edp_timeIndex, mV] = ginput (1); % time axis is in datenum, E-field in mV
-					last_iiSorted_beam_t2k = iiSorted_beam_t2k;
-					if ~isempty (edp_timeIndex)
-						% Go to the nearest EDI record that is in the neighborhood of this EDP record
-						% Note the switch from EDP to EDI here
-% disp ( sprintf ('Skip via EDP: edp_timeIndex: s%', datestr (edp_timeIndex, 'yyyy-mm-dd HH:MM:ss.fff') ) ) % V&V
-						iedi_timeIndex = find (gd_beam_dn > edp_timeIndex, 1);
-% disp ( sprintf ('Skip via EDP: gd_beam_dn %s', datestr (gd_beam_dn (iedi_timeIndex), 'yyyy-mm-dd HH:MM:ss.fff') ) ) % V&V
-						if ~isempty (iedi_timeIndex)
-							iiSorted_beam_t2k = find (iSorted_beam_t2k == iedi_timeIndex, 1);
-						else
-							disp 'Warning!!! No beam data found for this EDP point!'
-							iiSorted_beam_t2k = last_iiSorted_beam_t2k;
-						end
+					if ~isempty (iedi_timeIndex)
+						iiSorted_beam_t2k = find (iSorted_beam_t2k == iedi_timeIndex, 1);
+					else
+						disp 'Warning!!! No beam data found for this EDP point!'
+						iiSorted_beam_t2k = last_iiSorted_beam_t2k;
 					end
+				end
 
-				% sample filename: 'MEEdrift_1.00.00_M2_20010305_060419.217@20150108.224134*'
-				% mms2_edi_slow_ql_efield_20150509_v0.1.4.cdf
-				case 'Save Plots'
-					SavePlotFilename = [ ...
-						'.' cFileSep 'MEEdrift_', dotVersion, ...
-						'_M', obsID, mms_ql__EDP__dataFile(23:31), '_', ...
-						strBeamTime(12:13), strBeamTime(15:16), strBeamTime(18:23), '_', ...
-						datestr(now, '@yyyymmdd_HHMMSS')];
+			% sample filename: 'MEEdrift_1.00.00_M2_20010305_060419.217@20150108.224134*'
+			% mms2_edi_slow_ql_efield_20150509_v0.1.4.cdf
+			case 'Save Plots'
+				SavePlotFilename = [ ...
+					'.' cFileSep 'MEEdrift_', dotVersion, ...
+					'_M', obsID, mms_ql__EDP__dataFile(23:31), '_', ...
+					strBeamTime(12:13), strBeamTime(15:16), strBeamTime(18:23), '_', ...
+					datestr(now, '@yyyymmdd_HHMMSS')];
 
-					figure (fEDP_plot);
-					set (gcf, 'PaperUnits', 'inches');
-					set (gcf, 'PaperPosition', [0 0 12 3]); % x_width, y_width, NOT position; aim for 4:1
-					saveas (fEDP_plot,  [ SavePlotFilename, 'a.png' ], 'png');
+				figure (fEDP_plot);
+				set (gcf, 'PaperUnits', 'inches');
+				set (gcf, 'PaperPosition', [0 0 12 3]); % x_width, y_width, NOT position; aim for 4:1
+				saveas (fEDP_plot,  [ SavePlotFilename, 'a.png' ], 'png');
 
+				if Use_OCS_plot
+					saveas (fDMPA_plot, [ SavePlotFilename, 'b.png' ], 'png');
+				end
+
+				saveas (fBPP_plot,  [ SavePlotFilename, 'c.png' ], 'png');
+
+				if FFTplotted
+					saveas (fFFT_plot, [ SavePlotFilename, 'd.png' ], 'png');
+				end
+
+				disp (['Images saved as     "', SavePlotFilename, '[a|b|c|d].png', '".'])
+				MEEdrift_writeCurrentPlotData
+
+			case 'Save Snapshot'
+			  disp ([ 'Event: ', Event ])
+				if exist (Event, 'file')
+					[status, attribs] = fileattrib ([Event,'.mat'])
+					WriteMatFileOK = ~attribs.UserRead
+				else
+					WriteMatFileOK = true;
+				end
+				if WriteMatFileOK
+					save (Event)
+				else
+					% 			warndlg (['Cannot save: ', Event, '.mat is Read Only.'], '!! Warning !!', 'modal') % does not work as modal r2014a
+					% 			errordlg (['Cannot save: ', Event, '.mat is Read Only.'], '!! Warning !!', 'modal') % does not work as modal r2014a
+					questdlg (['Cannot save: ', Event, '.mat is Read Only.'], 'Warning', 'OK', 'Cancel', 'OK'); % limit 3 buttons
+				end
+
+		  case 'Smooth EDP'
+				MEEdrift_smoothing
+
+			case 'Toggle DMPA <> BPP'
+				DSI_view3D = ~DSI_view3D;
+				if DSI_view3D
 					if Use_OCS_plot
-						saveas (fDMPA_plot, [ SavePlotFilename, 'b.png' ], 'png');
+						figure (fDMPA_plot);
+						view ([ 115 20 ]); % Azimuth, Elevation in degrees, 3D view
 					end
+				else % 2D view of BPP
+					% Azimuth, Elevation in degrees, 3D view, based on B DMPA vector
+					figure (fBPP_plot);
+					view ([   0 90 ]); % Azimuth, Elevation in degrees, std x-y plot
+					% view ([ 42 58 ])
+					%	view ([ atand(abs(centerBeamB_u(2)/centerBeamB_u(1))) acosd(centerBeamB_u(3))-90.0 ]);
+				end
 
-					saveas (fBPP_plot,  [ SavePlotFilename, 'c.png' ], 'png');
+			case 'Plot EDP FFT x,y'
+				MEEdrift_FFT_MMS_EFW_data
 
-					if FFTplotted
-						saveas (fFFT_plot, [ SavePlotFilename, 'd.png' ], 'png');
-					end
-
-					disp (['Images saved as     "', SavePlotFilename, '[a|b|c|d].png', '".'])
-					MEEdrift_writeCurrentPlotData
-
-				case 'Save Snapshot'
-				  disp ([ 'Event: ', Event ])
-					if exist (Event, 'file')
-						[status, attribs] = fileattrib ([Event,'.mat'])
-						WriteMatFileOK = ~attribs.UserRead
-					else
-						WriteMatFileOK = true;
-					end
-					if WriteMatFileOK
-						save (Event)
-					else
-						% 			warndlg (['Cannot save: ', Event, '.mat is Read Only.'], '!! Warning !!', 'modal') % does not work as modal r2014a
-						% 			errordlg (['Cannot save: ', Event, '.mat is Read Only.'], '!! Warning !!', 'modal') % does not work as modal r2014a
-						questdlg (['Cannot save: ', Event, '.mat is Read Only.'], 'Warning', 'OK', 'Cancel', 'OK'); % limit 3 buttons
-					end
-
-			  case 'Smooth EDP'
-					MEEdrift_smoothing
-
-				case 'Toggle DMPA <> BPP'
-					DSI_view3D = ~DSI_view3D;
-					if DSI_view3D
-						if Use_OCS_plot
-							figure (fDMPA_plot);
-							view ([ 115 20 ]); % Azimuth, Elevation in degrees, 3D view
-						end
-					else % 2D view of BPP
-						% Azimuth, Elevation in degrees, 3D view, based on B DMPA vector
-						figure (fBPP_plot);
-						view ([   0 90 ]); % Azimuth, Elevation in degrees, std x-y plot
-						% view ([ 42 58 ])
-						%	view ([ atand(abs(centerBeamB_u(2)/centerBeamB_u(1))) acosd(centerBeamB_u(3))-90.0 ]);
-					end
-
-				case 'Plot EDP FFT x,y'
-					MEEdrift_FFT_MMS_EFW_data
-
-			end % switch strSelection
-% 		else % if OK == 1
-% 			strSelection = 'Quit';
-% 		end
+		end % switch strSelection
 	end % while ValidDataLoaded && ~strcmp (strSelection, 'Quit')
 
 	hold off
