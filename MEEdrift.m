@@ -7,7 +7,7 @@ clear variables
 close all       % close all figures
 
 global Project_;             Project_            = 'MMS_EDI_EDP_driftstep';
-global dotVersion;           dotVersion          = 'v2.01.00';
+global dotVersion;           dotVersion          = 'v2.02.00';
 global beamsWindow;          beamsWindow         = 4; % n, NOTE !!!! ± beamsWindow before|after center beam time
 global beamWindowSecs;       beamWindowSecs      = 2; % (s), NOTE !!!! ± beamWindowSecs before|after center beam time
 global ControlPanelActive;   ControlPanelActive  = false; % control panel can be open even if the main menu closes
@@ -37,10 +37,13 @@ global SmoothingSpan;        SmoothingSpan       = 13; % Must be odd
 
 global hEDP_mainAxes;
 global hEDP_zoomedAxes;
-global EDP_plot_ylim;        EDP_plot_ylim       = 99;
-global OCS_BPP_axisMax;      OCS_BPP_axisMax     = 6;
+global EDP_plot_ylim;        EDP_plot_ylim       = 99; % Usage: ylim (hEDP_mainAxes, [ -EDP_plot_ylim EDP_plot_ylim ] );
+global OCS_BPP_axisOriginX;  OCS_BPP_axisOriginX = 0.0;
+global OCS_BPP_axisOriginY;  OCS_BPP_axisOriginY = 0.0;
+global OCS_BPP_axisOriginZ;  OCS_BPP_axisOriginZ = 0.0;
+global OCS_BPP_axisRange;    OCS_BPP_axisRange   = 6.0; % the range is +- this value.
 
-TestMode = false; % true false
+TestMode = true; % true false
 
 myLibAppConstants
 % Constants used to calculate beam geometry
@@ -92,41 +95,76 @@ FFTplotted = false;
 
 disp (['Starting MEEdrift ' dotVersion])
 
-ButtonReply = '';
-DialogPos = [ 600 500 ];
-[ButtonReply, DialogPos] = MEEdrift_questDlg_uitools (DialogPos, ...
-	'Load Saved or Process New Data', 'Data Options', 'Load Saved', 'Process New', 'Process New'); % limit 3 buttons
+LoadEvent = false;
+SaveEvent = false;
 
-switch ButtonReply
-	case 'Load Saved'
-		% ==================================== Choose your time period and spacecraft
-		[eventFile, eventPath] = uigetfile ('MEEdrift*.mat', 'Select date, spacecraft, time to analyze');
-		if isequal (eventFile,  0) % then no valid file selected
-			msgbox ('No valid MEEdrift event file selected.');
-			ValidDataLoaded = false;
-		else
-			load ([eventPath, eventFile])
-		end
-		LoadEvent = true;
-		SaveEvent = false;
-	case 'Process New'
-		LoadEvent = false;
-		SaveEvent = false;
+if ~TestMode
+	ButtonReply = '';
+	DialogPos = [ 600 500 ];
+	[ButtonReply, DialogPos] = MEEdrift_questDlg_uitools (DialogPos, ...
+		'Load Saved or Process New Data', 'Data Options', 'Load Saved', 'Process New', 'Process New'); % limit 3 buttons
+
+	switch ButtonReply
+		case 'Load Saved'
+			% ==================================== Choose your time period and spacecraft
+			[eventFile, eventPath] = uigetfile ('MEEdrift*.mat', 'Select date, spacecraft, time to analyze');
+			if isequal (eventFile,  0) % then no valid file selected
+				msgbox ('No valid MEEdrift event file selected.');
+				ValidDataLoaded = false;
+			else
+				load ([eventPath, eventFile])
+			end
+			LoadEvent = true;
+			SaveEvent = false;
+		case 'Process New'
+			LoadEvent = false;
+			SaveEvent = false;
+	end
 end
 
 if LoadEvent
 else
 	if TestMode
-		beamsWindow = 8;
 		UseFileOpenGUI = false;
 
-		mms_ql_dataPath = 'D:\MMS\MATLAB\MEEdrift';
+		mms_ql_dataPath = 'D:\MMS\MATLAB\MEEdrift\mms_edi_cdf';
 
-		mms_ql__EDI__BdvE__dataFile = 'mms2_edi_slow_ql_efield_20150509_v0.1.4.cdf';
-		mms_ql__EDI__BdvE__dataFile = 'mms2_edi_srvy_ql_efield_20150509_v0.1.5.cdf';
+% 		mms_ql__EDI__BdvE__dataFile = 'mms1_edi_srvy_sl_efield_20150819_v0.2.3.cdf';
+% 		mms_ql__EDI__BdvE__dataFile = 'mms1_edi_srvy_sl_efield_20150820_v0.2.3.cdf';
+% 		mms_ql__EDI__BdvE__dataFile = 'mms1_edi_srvy_sl_efield_20150821_v0.2.3.cdf';
+% 		mms_ql__EDI__BdvE__dataFile = 'mms1_edi_srvy_sl_efield_20150822_v0.2.3.cdf';
+% 		mms_ql__EDI__BdvE__dataFile = 'mms2_edi_srvy_sl_efield_20150819_v0.2.3.cdf';
+% 		mms_ql__EDI__BdvE__dataFile = 'mms2_edi_srvy_sl_efield_20150820_v0.2.3.cdf';
+% 		mms_ql__EDI__BdvE__dataFile = 'mms2_edi_srvy_sl_efield_20150821_v0.2.3.cdf';
+% 		mms_ql__EDI__BdvE__dataFile = 'mms2_edi_srvy_sl_efield_20150822_v0.2.3.cdf';
+		mms_ql__EDI__BdvE__dataFile = 'mms3_edi_srvy_sl_efield_20150819_v0.2.3.cdf';
+% 		mms_ql__EDI__BdvE__dataFile = 'mms3_edi_srvy_sl_efield_20150820_v0.2.3.cdf';
+% 		mms_ql__EDI__BdvE__dataFile = 'mms3_edi_srvy_sl_efield_20150821_v0.2.3.cdf';
+% 		mms_ql__EDI__BdvE__dataFile = 'mms3_edi_srvy_sl_efield_20150822_v0.2.3.cdf';
+% 		mms_ql__EDI__BdvE__dataFile = 'mms2_edi_srvy_sl_efield_20150820_v0.2.3.cdf';
+% 		mms_ql__EDI__BdvE__dataFile = 'mms2_edi_srvy_sl_efield_20150821_v0.2.3.cdf';
+% 		mms_ql__EDI__BdvE__dataFile = 'mms2_edi_srvy_sl_efield_20150822_v0.2.3.cdf';
+
 		mms_ql__EDI__BdvE__data = [mms_ql_dataPath cFileSep mms_ql__EDI__BdvE__dataFile];
 
-		mms_ql__EDP__dataFile = 'mms2_edp_comm_ql_dce2d_20150509120000_v0.1.0.cdf';
+		mms_ql_dataPath = 'D:\MMS\MATLAB\MEEdrift\mms_edp_cdf';
+
+% 		mms_ql__EDP__dataFile = 'mms1_edp_slow_ql_dce_20150819000000_v0.2.0.cdf';
+% 		mms_ql__EDP__dataFile = 'mms1_edp_slow_ql_dce_20150820000000_v0.2.0.cdf';
+% 		mms_ql__EDP__dataFile = 'mms1_edp_slow_ql_dce_20150821000000_v0.2.0.cdf';
+% 		mms_ql__EDP__dataFile = 'mms1_edp_slow_ql_dce_20150822000000_v0.2.0.cdf';
+% 		mms_ql__EDP__dataFile = 'mms2_edp_slow_ql_dce_20150819000000_v0.2.0.cdf';
+% 		mms_ql__EDP__dataFile = 'mms2_edp_slow_ql_dce_20150820000000_v0.2.0.cdf';
+% 		mms_ql__EDP__dataFile = 'mms2_edp_slow_ql_dce_20150821000000_v0.2.0.cdf';
+% 		mms_ql__EDP__dataFile = 'mms2_edp_slow_ql_dce_20150822000000_v0.2.0.cdf';
+		mms_ql__EDP__dataFile = 'mms3_edp_slow_ql_dce_20150819000000_v0.2.0.cdf';
+% 		mms_ql__EDP__dataFile = 'mms3_edp_slow_ql_dce_20150820000000_v0.2.0.cdf';
+% 		mms_ql__EDP__dataFile = 'mms3_edp_slow_ql_dce_20150821000000_v0.2.0.cdf';
+% 		mms_ql__EDP__dataFile = 'mms3_edp_slow_ql_dce_20150822000000_v0.2.0.cdf';
+% 		mms_ql__EDP__dataFile = 'mms4_edp_slow_ql_dce_20150820000000_v0.2.0.cdf';
+% 		mms_ql__EDP__dataFile = 'mms4_edp_slow_ql_dce_20150821000000_v0.2.0.cdf';
+% 		mms_ql__EDP__dataFile = 'mms4_edp_slow_ql_dce_20150822000000_v0.2.0.cdf';
+
 		mms_ql__EDP_data = [mms_ql_dataPath cFileSep mms_ql__EDP__dataFile];
 
 		Event = mms_ql__EDI__BdvE__dataFile (1:24); % An event label used to indentify this analysis
@@ -153,6 +191,7 @@ if ScrollData
 		if ~isempty (strfind ([ ...
 			'< Beam <', ...
 			'> Beam >', ...
+			'Replot', ...
 			'Skip via EDP' ], ...
 			strSelection)) % or if plot dots
 			MEEdrift_plot_beams
@@ -191,10 +230,12 @@ if ScrollData
 
 			% sample filename: 'MEEdrift_1.00.00_M2_20010305_060419.217@20150108.224134*'
 			% mms2_edi_slow_ql_efield_20150509_v0.1.4.cdf
+			% mms1_edi_srvy_sl_efield_20150819_v0.2.3.cdf
+			% mms1_edp_slow_ql_dce_20150819000000_v0.2.0.cdf
 			case 'Save Plots'
 				SavePlotFilename = [ ...
 					'.' cFileSep 'MEEdrift_', dotVersion, ...
-					'_M', obsID, mms_ql__EDP__dataFile(23:31), '_', ...
+					'_M', obsID, mms_ql__EDP__dataFile(21:29), '_', ...
 					strBeamTime(12:13), strBeamTime(15:16), strBeamTime(18:23), '_', ...
 					datestr(now, '@yyyymmdd_HHMMSS')];
 
@@ -204,16 +245,25 @@ if ScrollData
 				saveas (fEDP_plot,  [ SavePlotFilename, 'a.png' ], 'png');
 
 				if Use_OCS_plot
+					figure (fDMPA_plot);
+					set (gcf, 'PaperUnits', 'inches');
+					set (gcf, 'PaperPosition', [0 0 6.0 6.0]); % x_width, y_width, NOT position; aim for 7:6
 					saveas (fDMPA_plot, [ SavePlotFilename, 'b.png' ], 'png');
 				end
 
+				figure (fBPP_plot);
+				set (gcf, 'PaperUnits', 'inches');
+				set (gcf, 'PaperPosition', [0 0 6.0 6.0]); % x_width, y_width, NOT position; aim for 7:6
 				saveas (fBPP_plot,  [ SavePlotFilename, 'c.png' ], 'png');
 
 				if FFTplotted
+					figure (fFFT_plot);
+					set (gcf, 'PaperUnits', 'inches');
+					set (gcf, 'PaperPosition', [0 0 12 3]); % x_width, y_width, NOT position; aim for 4:1
 					saveas (fFFT_plot, [ SavePlotFilename, 'd.png' ], 'png');
 				end
 
-				disp (['Images saved as     "', SavePlotFilename, '[a|b|c|d].png', '".'])
+				disp (['Images saved as "', SavePlotFilename, '[a|b|c|d].png', '".'])
 				MEEdrift_writeCurrentPlotData
 
 			case 'Save Snapshot'
@@ -247,7 +297,7 @@ if ScrollData
 					figure (fBPP_plot);
 					view ([   0 90 ]); % Azimuth, Elevation in degrees, std x-y plot
 					% view ([ 42 58 ])
-					%	view ([ atand(abs(centerBeamB_u(2)/centerBeamB_u(1))) acosd(centerBeamB_u(3))-90.0 ]);
+					%	view ([ atand(abs(centerBeamBu(2)/centerBeamBu(1))) acosd(centerBeamBu(3))-90.0 ]);
 				end
 
 			case 'Plot EDP FFT x,y'

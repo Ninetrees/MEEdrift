@@ -50,7 +50,7 @@ function varargout = MEEdrift_main_menu (varargin)
 
 % Edit the above text to modify the response to help MEEdrift_main_menu
 
-% Last Modified by GUIDE v2.5 28-Aug-2015 11:09:35
+% Last Modified by GUIDE v2.5 18-Sep-2015 13:07:00
 
 % Begin initialization code - DO NOT EDIT
 	gui_Singleton = 1;
@@ -185,11 +185,20 @@ function uic_pbSkipViaEDP_Callback (hObject, eventdata, handles)
 	uiresume (gcbf);
 end
 
-
+% ~~~~~~~~~~~~~~~~~~~
 % --- Executes on button press in uic_pbSmoothEDP.
 function uic_pbSmoothEDP_Callback (hObject, eventdata, handles)
 	% hObject    handle to uic_pbSmoothEDP (see GCBO)
 	global strMainMenu;
 	strMainMenu = 'Smooth EDP';
+	uiresume (gcbf);
+end
+
+% ~~~~~~~~~~~~~~~~~~~
+% --- Executes on button press in uic_pbReplot.
+function uic_pbReplot_Callback (hObject, eventdata, handles)
+	% hObject    handle to uic_pbReplot (see GCBO)
+	global strMainMenu;
+	strMainMenu = 'Replot';
 	uiresume (gcbf);
 end

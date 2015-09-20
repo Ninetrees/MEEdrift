@@ -54,7 +54,7 @@ iedi_BdvE_dmpa  = find (BdvE_xref2_edi == edi_BdvE_recnum);
 
 centerBeamB    = edi_B_dmpa (:, iedi_BdvE_dmpa);
 centerBeamB2n  = norm (centerBeamB, 2);
-centerBeamB_u  = centerBeamB / centerBeamB2n; % unit vector
+centerBeamBu  = centerBeamB / centerBeamB2n; % unit vector
 centerBeamE    = edi_E_dmpa (:, iedi_BdvE_dmpa);
 centerBeamEu   = centerBeamE / norm (centerBeamE, 2);
 centerBeam_dn  = gd_beam_dn (iCenterBeam);
@@ -114,15 +114,15 @@ S_star_dmpa_u = -centerBeam_du;
 % shows the GDU plane and beams rotated into BPP.
 
 flipFlag = 1.0;
-% if centerBeamB_u (3) < 0
+% if centerBeamBu (3) < 0
 % 	flipFlag = -1.0
 % end
 
 DMPA2BPPy = [ 0.0; 1.0; 0.0 ];
-DMPA2BPPx = cross (DMPA2BPPy, centerBeamB_u);
+DMPA2BPPx = cross (DMPA2BPPy, centerBeamBu);
 DMPA2BPPx = DMPA2BPPx / norm (DMPA2BPPx, 2);
-DMPA2BPPy = cross (centerBeamB_u, DMPA2BPPx);
-DMPA2BPP  = [ DMPA2BPPx'; DMPA2BPPy'; centerBeamB_u' ];
+DMPA2BPPy = cross (centerBeamBu, DMPA2BPPx);
+DMPA2BPP  = [ DMPA2BPPx'; DMPA2BPPy'; centerBeamBu' ];
 
 % P = DMPA2BPP * p, where p is some point or vector in DMPA, can be interpreted as
 % EITHER the fixed location of p expressed as P as seen in BPP
@@ -181,12 +181,14 @@ if PlotHoldOff
 	end;
 end
 
-AxisMax = OCS_BPP_axisMax;
+% AxisMax = OCS_BPP_axisRange;
 if Use_OCS_plot
 	set (0, 'CurrentFigure', fDMPA_plot) % hDMPA_plotElements
 	set (fDMPA_plot, 'color', 'white'); % sets the color to white
-% 	axis ([ -AxisMax AxisMax  -AxisMax AxisMax  -AxisMax AxisMax  -AxisMax AxisMax ]);
-	axis ([ -AxisMax AxisMax  -AxisMax AxisMax  -AxisMax AxisMax ]);
+	axis ([ ...
+		OCS_BPP_axisOriginX-OCS_BPP_axisRange OCS_BPP_axisOriginX+OCS_BPP_axisRange  ...
+		OCS_BPP_axisOriginY-OCS_BPP_axisRange OCS_BPP_axisOriginY+OCS_BPP_axisRange  ...
+		OCS_BPP_axisOriginZ-OCS_BPP_axisRange OCS_BPP_axisOriginZ+OCS_BPP_axisRange ]);
 	axis square;
 	axis vis3d;
 	axis on;
@@ -196,8 +198,10 @@ end
 
 set (0, 'CurrentFigure', fBPP_plot) % hBPP_plotElements DMPA2BPP
 set (fBPP_plot, 'color', 'white'); % sets the color to white
-% 	axis ([ -AxisMax AxisMax  -AxisMax AxisMax  -AxisMax AxisMax  -AxisMax AxisMax ]);
-	axis ([ -AxisMax AxisMax  -AxisMax AxisMax  -AxisMax AxisMax ]);
+	axis ([ ...
+		OCS_BPP_axisOriginX-OCS_BPP_axisRange OCS_BPP_axisOriginX+OCS_BPP_axisRange  ...
+		OCS_BPP_axisOriginY-OCS_BPP_axisRange OCS_BPP_axisOriginY+OCS_BPP_axisRange  ...
+		OCS_BPP_axisOriginZ-OCS_BPP_axisRange OCS_BPP_axisOriginZ+OCS_BPP_axisRange ]);
 axis square;
 axis vis3d;
 axis on;
@@ -299,14 +303,14 @@ for BeamBracketIndex = (iiSorted_beam_t2k - beamsWindow) : (iiSorted_beam_t2k + 
 				% centerBeamB : nT, 3D beam B-field vector, DMPA
 				if Use_OCS_plot
 					set (0, 'CurrentFigure', fDMPA_plot) % hDMPA_plotElements
-					hDMPA_plotElements (6) = line ( [ 0.0 centerBeamB_u(1) ], [ 0.0 centerBeamB_u(2) ], [ 0.0 centerBeamB_u(3) ], ...
+					hDMPA_plotElements (6) = line ( [ 0.0 centerBeamBu(1) ], [ 0.0 centerBeamBu(2) ], [ 0.0 centerBeamBu(3) ], ...
 						'LineStyle', '-', 'LineWidth', 2.0, 'Color', myDarkBlue); % B field vector
 				end
 
 				set (0, 'CurrentFigure', fBPP_plot) % hBPP_plotElements DMPA2BPP
-				% centerBeamB_u is the real B unit vector.
-				CenterBeamBavgBPP_u = DMPA2BPP * centerBeamB_u;
-				hBPP_plotElements (6) = line ( [ 0.0 CenterBeamBavgBPP_u(1) ], [ 0.0 CenterBeamBavgBPP_u(2) ], [ 0.0 CenterBeamBavgBPP_u(3) ], ...
+				% centerBeamBu is the real B unit vector.
+				CenterBeamBu_bpp = DMPA2BPP * centerBeamBu;
+				hBPP_plotElements (6) = line ( [ 0.0 CenterBeamBu_bpp(1) ], [ 0.0 CenterBeamBu_bpp(2) ], [ 0.0 CenterBeamBu_bpp(3) ], ...
 					'LineStyle', '-', 'LineWidth', 2.0, 'Color', myDarkBlue); % B field vector
 
 				if Use_OCS_plot
@@ -420,19 +424,19 @@ for BeamBracketIndex = (iiSorted_beam_t2k - beamsWindow) : (iiSorted_beam_t2k + 
 					edp_EdotB_dmpa = [ edp_E_interp(1); edp_E_interp(2); edp_EdotBz ]
 
 					% v = E x B, but we want S*, the negative of the drift step, so we swap ExB ~> BxE ~> d = v * gyroPeriod
-					edp_EdotB_d_dmpa = ((cross (centerBeamB, edp_EdotB_dmpa) / centerBeamB2n^2 ) * C2V2T * gyroPeriod); % (m), simplified
-					edp_EdotB_d_bpp = DMPA2BPP * edp_EdotB_d_dmpa
+					edp_EdotB_S_star = ((cross (centerBeamB, edp_EdotB_dmpa) / centerBeamB2n^2 ) * C2V2T * gyroPeriod); % (m), simplified
+					edp_EdotB_S_star_bpp = DMPA2BPP * edp_EdotB_S_star
 
 					if Use_OCS_plot
 						set (0, 'CurrentFigure', fDMPA_plot) % hDMPA_plotElements
 						hBPP_plotElements (10) = plot3 ( ...
-							edp_EdotB_d_dmpa (1), edp_EdotB_d_dmpa (2), edp_EdotB_d_dmpa (3), ...
+							edp_EdotB_S_star (1), edp_EdotB_S_star (2), edp_EdotB_S_star (3), ...
 							'LineStyle', 'none', 'Marker', 'o', 'MarkerFaceColor', myOrange, 'MarkerEdgeColor', myOrange, 'MarkerSize', 5.0);
 					end
 
 					set (0, 'CurrentFigure', fBPP_plot) % hBPP_plotElements
 					hBPP_plotElements (10) = plot3 ( ...
-						edp_EdotB_d_bpp (1), edp_EdotB_d_bpp (2), edp_EdotB_d_bpp (3), ...
+						edp_EdotB_S_star_bpp (1), edp_EdotB_S_star_bpp (2), edp_EdotB_S_star_bpp (3), ...
 						'LineStyle', 'none', 'Marker', 'o', 'MarkerFaceColor', myOrange, 'MarkerEdgeColor', myOrange, 'MarkerSize', 5.0);
 
 					edp_zoomStart = iEDP_t2kLO - 100;
@@ -456,6 +460,7 @@ end % for BeamBracketIndex...
 % There is a chance that some lines will be parallel, or nearly so... this must be eventually handled
 % if this method proves viable. y = mx + b => -mx + y = b
 % | -m 1| |x| = |b|, where || signals a matrix; then [x y] = M \ b
+bc_S_star_bpp = [ NaN; NaN; NaN ];
 if PlotBeamConvergence
 	if nTargetBeams > 1
 		S_star_beams_m_bpp (nTargetBeams+1: end) = [];
@@ -469,10 +474,11 @@ if PlotBeamConvergence
 				'MarkerFaceColor', myLightGrey4, 'MarkerEdgeColor', myLightGrey4, 'MarkerSize', 2.0);
 		end
 
-		plot3 (GrubbsBeamInterceptMean (1), GrubbsBeamInterceptMean (2), 0.0, ...
+		hBPP_plotElements (11) = plot3 (GrubbsBeamInterceptMean (1), GrubbsBeamInterceptMean (2), 0.0, ...
 			'LineStyle', 'none', 'Marker', 'o', 'MarkerFaceColor', 'blue', 'MarkerEdgeColor', 'green', 'MarkerSize', 5.0);
 
 		disp ( [ 'Beam convergence, S*: ', sprintf('%+8.3f %+8.3f %+8.3f', GrubbsBeamInterceptMean, 0.0) ] );
+		bc_S_star_bpp = [ GrubbsBeamInterceptMean; 0.0 ];
 	end % 	if nTargetBeams > 1
 end % if PlotBeamConvergence
 
@@ -486,9 +492,6 @@ if Use_OCS_plot
 	hDMPA__BPP_legendAxes = gca;
 	p = hDMPA_plotElements;
 	PlotView = '3D'; % flag for ...annotate...
-	% 	MEEdrift_annotate_DMPA_BPP_plots
-	% xlabel ('x')
-	% ylabel ('y')
 	figure (fDMPA_plot);
 	view ([ 115 20 ]); % Azimuth, Elevation in degrees, 3D view
 	zoom (0.8)

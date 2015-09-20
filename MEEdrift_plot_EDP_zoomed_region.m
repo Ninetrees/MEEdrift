@@ -8,7 +8,7 @@ end
 
 zoomTimeSeries {1} = edp_dn (edp_zoomStart: edp_zoomEnd);
 zoomDataSeries {1} = edp_E3D_dsl (:, edp_zoomStart: edp_zoomEnd);
-edp_E3D_dsl_plot_start = edp_E3D_dsl (:, edp_zoomStart)
+% edp_E3D_dsl_zoomStart = edp_E3D_dsl (:, edp_zoomStart); % V&V
 
 hEDP_zoomedPlot = plot (hEDP_zoomedAxes, ...
 	zoomTimeSeries {1}, zoomDataSeries {1}, ...

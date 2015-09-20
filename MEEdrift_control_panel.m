@@ -40,7 +40,7 @@ function varargout = MEEdrift_control_panel (varargin)
 %   instance to run (singleton)".
 %
 %   In object functions below:
-%   hObject    handle to uic_eOCS_BPP_axisMax (see GCBO)
+%   hObject    handle to uic_eOCS_BPP_axisOriginX (see GCBO)
 %   eventdata  reserved - to be defined in a future version of MATLAB
 %   handles    created //after all// CreateFcns called
 %
@@ -48,7 +48,7 @@ function varargout = MEEdrift_control_panel (varargin)
 
 % Edit the above text to modify the response to help MEEdrift_control_panel
 
-% Last Modified by GUIDE v2.5 03-Sep-2015 08:08:18
+% Last Modified by GUIDE v2.5 20-Sep-2015 14:59:22
 
 % Begin initialization code - DO NOT EDIT
 	gui_Singleton = 1;
@@ -100,7 +100,10 @@ function MEEdrift_control_panel_OpeningFcn (hObject, eventdata, handles, varargi
   global EDPy_factor;
   global EDPz_factor;
 	global EDP_plot_ylim;
-	global OCS_BPP_axisMax;
+	global OCS_BPP_axisOriginX;
+	global OCS_BPP_axisOriginY;
+	global OCS_BPP_axisOriginZ;
+	global OCS_BPP_axisRange;
 
 % EDP_offset = [ EDPx_offset EDPy_offset EDPz_offset ]
 % EDP_offset = [ 1.0 1.0 1.0 ]
@@ -130,7 +133,10 @@ function MEEdrift_control_panel_OpeningFcn (hObject, eventdata, handles, varargi
 	set (handles.uic_eEDPz_XFactor, 'String', num2str (EDPz_factor));
 
 	set (handles.uic_eEDP_plot_ylim, 'String', num2str (EDP_plot_ylim));
-	set (handles.uic_eOCS_BPP_axisMax, 'String', num2str (OCS_BPP_axisMax));
+	set (handles.uic_eOCS_BPP_axisOriginX, 'String', num2str (OCS_BPP_axisOriginX));
+	set (handles.uic_eOCS_BPP_axisOriginY, 'String', num2str (OCS_BPP_axisOriginY));
+	set (handles.uic_eOCS_BPP_axisOriginZ, 'String', num2str (OCS_BPP_axisOriginZ));
+	set (handles.uic_eOCS_BPP_axisRange, 'String', num2str (OCS_BPP_axisRange));
 
 	% UIWAIT makes MEEdrift_control_panel wait for user response (see UIRESUME)
 	% uiwait (handles.figure1);
@@ -410,7 +416,6 @@ function uic_eEDPy_XFactor_Callback (hObject, eventdata, handles)
 	end
 end
 
-
 % ~~~~~~~~~~~~~~~~~~~
 % --- Executes during object creation, after setting all properties.
 function uic_eEDPy_XFactor_CreateFcn (hObject, eventdata, handles)
@@ -448,27 +453,99 @@ function uic_eEDPz_XFactor_CreateFcn (hObject, eventdata, handles)
 end
 
 % ~~~~~~~~~~~~~~~~~~~
-function uic_eOCS_BPP_axisMax_Callback(hObject, eventdata, handles)
-	% Hints: get(hObject,'String') returns contents of uic_eOCS_BPP_axisMax as text
-	%        str2double(get(hObject,'String')) returns contents of uic_eOCS_BPP_axisMax as a double
-	global OCS_BPP_axisMax;
-	axisMax = str2double (get (hObject, 'String'));
-	if ~isnan (axisMax)
-		if (axisMax > 3.0) && (axisMax < 100.0) % arbitrary limits
-			OCS_BPP_axisMax = axisMax;
-			set (hObject, 'String', num2str (axisMax));
+function uic_eOCS_BPP_axisOriginX_Callback (hObject, eventdata, handles)
+	% Hints: get(hObject,'String') returns contents of uic_eOCS_BPP_axisOriginX as text
+	%        str2double(get(hObject,'String')) returns contents of uic_eOCS_BPP_axisOriginX as a double
+	global OCS_BPP_axisOriginX;
+	axisOrigin = str2double (get (hObject, 'String'));
+	if ~isnan (axisOrigin)
+		if (axisOrigin > -20.001) && (axisOrigin < 20.001) % arbitrary limits
+			OCS_BPP_axisOriginX = axisOrigin;
+			set (hObject, 'String', num2str (axisOrigin));
 		else
-			warndlg ('OCS & BPP axis limits must be [4 .. 99].');
+			warndlg ('OCS & BPP axis origin must be [-20 .. 20].');
 		end
 	end
 end
 
 % ~~~~~~~~~~~~~~~~~~~
 % --- Executes during object creation, after setting all properties.
-function uic_eOCS_BPP_axisMax_CreateFcn(hObject, eventdata, handles)
+function uic_eOCS_BPP_axisOriginX_CreateFcn (hObject, eventdata, handles)
 	% Hint: edit controls usually have a white background on Windows.
 	%       See ISPC and COMPUTER.
 	if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
 	    set(hObject,'BackgroundColor','white');
+	end
+end
+
+% ~~~~~~~~~~~~~~~~~~~
+function uic_eOCS_BPP_axisOriginY_Callback (hObject, eventdata, handles)
+	% Hints: get(hObject,'String') returns contents of uic_eOCS_BPP_axisOriginY as text
+	%        str2double(get(hObject,'String')) returns contents of uic_eOCS_BPP_axisOriginY as a double
+	global OCS_BPP_axisOriginY;
+	axisOrigin = str2double (get (hObject, 'String'));
+	if ~isnan (axisOrigin)
+		if (axisOrigin > -20.001) && (axisOrigin < 20.001) % arbitrary limits
+			OCS_BPP_axisOriginY = axisOrigin;
+			set (hObject, 'String', num2str (axisOrigin));
+		else
+			warndlg ('OCS & BPP axis origin must be [-20 .. 20].');
+		end
+	end
+end
+
+% ~~~~~~~~~~~~~~~~~~~
+% --- Executes during object creation, after setting all properties.
+function uic_eOCS_BPP_axisOriginY_CreateFcn (hObject, eventdata, handles)
+	if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+		set(hObject,'BackgroundColor','white');
+	end
+end
+
+
+% ~~~~~~~~~~~~~~~~~~~
+function uic_eOCS_BPP_axisOriginZ_Callback (hObject, eventdata, handles)
+% Hints: get(hObject,'String') returns contents of uic_eOCS_BPP_axisOriginZ as text
+%        str2double(get(hObject,'String')) returns contents of uic_eOCS_BPP_axisOriginZ as a double
+	global OCS_BPP_axisOriginZ;
+	axisOrigin = str2double (get (hObject, 'String'));
+	if ~isnan (axisOrigin)
+		if (axisOrigin > -20.001) && (axisOrigin < 20.001) % arbitrary limits
+			OCS_BPP_axisOriginZ = axisOrigin;
+			set (hObject, 'String', num2str (axisOrigin));
+		else
+			warndlg ('OCS & BPP axis origin must be [-20 .. 20].');
+		end
+	end
+end
+
+% ~~~~~~~~~~~~~~~~~~~
+% --- Executes during object creation, after setting all properties.
+function uic_eOCS_BPP_axisOriginZ_CreateFcn (hObject, eventdata, handles)
+	if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+		set(hObject,'BackgroundColor','white');
+	end
+end
+% ~~~~~~~~~~~~~~~~~~~
+function uic_eOCS_BPP_axisRange_Callback (hObject, eventdata, handles)
+	% Hints: get(hObject,'String') returns contents of uic_eOCS_BPP_axisRange as text
+	%        str2double(get(hObject,'String')) returns contents of uic_eOCS_BPP_axisRange as a double
+	global OCS_BPP_axisRange;
+	axisRange = str2double (get (hObject, 'String'));
+	if ~isnan (axisRange)
+		if (axisRange > 0.999) && (axisRange < 20.001) % arbitrary limits
+			OCS_BPP_axisRange = axisRange;
+			set (hObject, 'String', num2str (axisRange));
+		else
+			warndlg ('OCS & BPP axis range must be (1 .. 20).');
+		end
+	end
+end
+
+% ~~~~~~~~~~~~~~~~~~~
+% --- Executes during object creation, after setting all properties.
+function uic_eOCS_BPP_axisRange_CreateFcn (hObject, eventdata, handles)
+	if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+		set(hObject,'BackgroundColor','white');
 	end
 end

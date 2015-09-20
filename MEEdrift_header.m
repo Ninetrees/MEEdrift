@@ -2,7 +2,15 @@
 	Name: MEEdrift
 	Description: Compare EDP E-field measurements with calculated EDI E-fields
 
-	2015-002 ~ v02.01.00:
+	2015-09-20 ~ v02.02.00:
+	 ~ Update test mode logic.
+	 ~ Enhance MEEdrift_writeCurrentPlotData report.
+	 ~ Correct saved beam plot series filename root, based on EDP ql file name.
+	 ~ Replace OCS|BPP plot zoom range with origin (x,y,z)+range.
+	 ~ Add Replot button.
+	 ~ Add BC S* to legend if selected.
+
+	2015-09-06 ~ v02.01.00:
 	 ~ Multiply each EDP component by the Fahleson factor, 1.0/0.7.
 	   Provide EDP multiplication factors for xyz.
 	 ~ Remove a 2 mV/m sunward offset from Ex. Use existing EDPxyz offsets.

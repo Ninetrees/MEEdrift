@@ -14,7 +14,7 @@ if UseFileOpenGUI
 	end
 end
 
-obsID = mms_ql__EDI__BdvE__dataFile (4:4)
+obsID = mms_ql__EDI__BdvE__dataFile (4:4);
 YYYY  = str2num (mms_ql__EDI__BdvE__dataFile (30:33));
 MM    = str2num (mms_ql__EDI__BdvE__dataFile (34:35));
 DD    = str2num (mms_ql__EDI__BdvE__dataFile (36:37));
