@@ -1,8 +1,3 @@
-MEEdrift v2.02.00
-~ Update test mode logic.
-~ Enhance MEEdrift_writeCurrentPlotData report.
-~ Correct saved beam plot series filename root, based on EDP ql file name.
-~ Replace OCS|BPP plot zoom range with origin (x,y,z)+range.
-~ Add Replot button.
-~ Add BC S* to legend if selected.
+MEEdrift v2.03.00
+~ Change line endings from CRLF to LF
 See MEEdrift_header.m

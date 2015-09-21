@@ -7,7 +7,7 @@ clear variables
 close all       % close all figures
 
 global Project_;             Project_            = 'MMS_EDI_EDP_driftstep';
-global dotVersion;           dotVersion          = 'v2.02.00';
+global dotVersion;           dotVersion          = 'v2.03.00';
 global beamsWindow;          beamsWindow         = 4; % n, NOTE !!!! ± beamsWindow before|after center beam time
 global beamWindowSecs;       beamWindowSecs      = 2; % (s), NOTE !!!! ± beamWindowSecs before|after center beam time
 global ControlPanelActive;   ControlPanelActive  = false; % control panel can be open even if the main menu closes
@@ -43,7 +43,7 @@ global OCS_BPP_axisOriginY;  OCS_BPP_axisOriginY = 0.0;
 global OCS_BPP_axisOriginZ;  OCS_BPP_axisOriginZ = 0.0;
 global OCS_BPP_axisRange;    OCS_BPP_axisRange   = 6.0; % the range is +- this value.
 
-TestMode = true; % true false
+TestMode = false; % true false
 
 myLibAppConstants
 % Constants used to calculate beam geometry

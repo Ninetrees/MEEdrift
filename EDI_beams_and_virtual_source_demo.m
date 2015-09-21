@@ -3,7 +3,7 @@
 % Purpose
 % Demonstrate how beams are fired from either of two MMS Electron Drift
 % Instrument (EDI) gun-dectector units (GDU) and detected by the other.
-% Show how the intersection of the beams relates to the electric field 
+% Show how the intersection of the beams relates to the electric field
 % drift step. Show how the virtual observatory relates to the real
 % observatory, and how the intersection of fired beams at the virtual
 % source S* is the negative drift step vector in the B-field Perpendicular
