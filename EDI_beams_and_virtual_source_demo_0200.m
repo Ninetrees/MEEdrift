@@ -1,9 +1,9 @@
-% EDI_beams_and_virtual_source_demo_0101.m
+% EDI_beams_and_virtual_source_demo_0200.m
 %
 % Purpose
 % Demonstrate how beams are fired from either of two MMS Electron Drift
 % Instrument (EDI) gun-dectector units (GDU) and detected by the other.
-% Show how the intersection of the beams relates to the electric field 
+% Show how the intersection of the beams relates to the electric field
 % drift step. Show how the virtual observatory relates to the real
 % observatory, and how the intersection of fired beams at the virtual
 % source S* is the negative drift step vector in the B-field Perpendicular
@@ -30,7 +30,11 @@
 % Required Products None
 %
 % History:
-%   2015-07-15      V0100: Origin
+% 2015-10-19 ~ v02.00.00:
+% ~ Implement motion in direction of drift
+% ~ Change to MMS-specific geometry and EDI parameters
+%
+% 2015-07-15 ~ v01.00.00: Origin
 %
 
 clc             % clear the command window
@@ -43,35 +47,51 @@ format short g  % +, bank, hex, long, rat, short, short g, short eng
 myLibAppConstants
 myLibScienceConstants
 
+mmsRPM        = 3.0; % nominal, 1 spin ~20 s. 0.05 Hz
+mmsSpinPeriod = 20.0; % seconds, nominal
+MMS_apogee    = 12.0 * Re;
+MMS_perigee   = 1.20 * Re;
+% At apogee, we trade KE for PE, so v_apogee < v_perigee
+MMS_speed_apogee  = sqrt ( (2.0 * GM * MMS_perigee) / (MMS_apogee * (MMS_apogee + MMS_perigee)) ); % ~ 973  m/s
+MMS_speed_perigee = sqrt ( (2.0 * GM * MMS_apogee) / (MMS_perigee * (MMS_apogee + MMS_perigee)) ); % ~ 9736 m/s
+% Distance spacecraft moves in gyroPeriod of 0.00011614 s
+% apogee: ~= 0.11 m, perigee ~= 1.13 m
+EDI1gunLoc = [ -1.45598,  1.11837, 0.0 ]; % EDI2 gun atan2(-1.11837, 1.45598)*180/pi ~> -37.52865°
+EDI1detLoc = [ -1.35885,  1.03395, 0.0 ]; % EDI2 det atan2(-1.03395, 1.35885)*180/pi ~> -37.26753°
+EDI2gunLoc = [  1.45598, -1.11837, 0.0 ]; % EDI1detLoc:EDI1gunLoc angle = atan2(1.11837-1.03395, -1.45598+1.35885)*180/pi ~> -40.995°
+EDI2detLoc = [  1.35885, -1.03395, 0.0 ]; % norm(EDI1gunLoc-EDI1detLoc,2) = 0.128689
+mmsEDI_VirtualRadius = norm (EDI1gunLoc-EDI2detLoc, 2);
+mmsEDI_Radius = mmsEDI_VirtualRadius / 2.0;
+
 % Original B, E values based on Cluster data, C3_CP_EFW_L2_E__20010608_053000_20010608_054000
 Bz = 307.603e-9    % magnetic field strength (in the z-direction), nT > T, org: 307.603e-9
 Ey = 7.87177e-3    % electric field strength (in the GDU1_beamY-direction), mV/m > V/m, org: 0.787177e-3
 
-GDU1y = -1.6;
-GDU2y = +1.6;
+GDU1y = -mmsEDI_Radius; % GDU 1 (0, -r)
+GDU2y = +mmsEDI_Radius; % GDU 2 (0, +r)
 
-gyroPeriod = (twoPi * mass_e) / (q * Bz)
+gyroPeriod = (twoPi * mass_e) / (q * Bz) % Bz = 307.603e-9 ~> 0.00011614 s
 % Introduction to Plasma Physics and Controlled Fusion Plasma Physics 2E. Chen.pdf
 % [2-11] to [2-16]
 % If E lies in the B-perp plane, E + v x B = 0
 % ExB = B x (v x B) = vb^2 - B(v.B) ... note sign change on RHS from B x, rather than x B.
 % Assume v.B = 0 ~> ExB = vb^2 ~> v_perp = (ExB)/b^2
-driftVelocity = cross ([ 0.0; Ey; 0.0 ], [ 0.0; 0.0; Bz ]) / Bz^2; % vector
+driftVelocity = cross ([ 0.0; Ey; 0.0 ], [ 0.0; 0.0; Bz ]) / (Bz*Bz); % vector, Chen [2-15]
 % driftStep (m) = v_perp (m/s) * gyroPeriod (s)
 driftStep = driftVelocity * gyroPeriod % vector
 % Note also the sign of the charge in Chen [2-11].
 
 t          =  (0: 0.00001: 1.001) * gyroPeriod;  % time range, finer detail gives better results
 % Cluster s/c radius = 2.9 m; GDUs increase that to 3.2 m, for a radius of 1.6 m.
-scRadius   = 1.6;
+% scRadius   = 1.6;
 vd_x       = Ey/Bz;            % drift velocity 2.559068e3 m/s; specifically in x for this case
-ve         = v_1keV_electron;
+ve         = v_500eV_electron;
 w          = -q * Bz / mass_e; % gyrofrequency (note, can be negative for electron)
 zeroTol    = 0.05;             % guess a reasonable threshold for intersection determination
 
-GDU_planeInICS = zeros (3, 361, 'double');
+instrPlaneBCS = zeros (3, 361, 'double');
 for theta = 0:1:360
-	GDU_planeInICS (:, theta+1) = scRadius * [ cosd(theta); sind(theta); 0.0 ];
+	instrPlaneBCS (:, theta+1) = mmsEDI_Radius * [ cosd(theta); sind(theta); 0.0 ];
 end
 
 disp 'For F = ma = q (E + vxB):'
@@ -110,25 +130,43 @@ disp 'increase with the order of multirunner.'
 hGDU1_E_vxB_beam_plot = 1;
 figure (hGDU1_E_vxB_beam_plot);
 figLocSize = [ 400+DisplayOffset(1)  100+DisplayOffset(2)  800  600 ]; % left, bottom, width, height
-set (hGDU1_E_vxB_beam_plot, 'Position', [ figLocSize(1) figLocSize(2) figLocSize(3) figLocSize(4) ])
+set (hGDU1_E_vxB_beam_plot, 'position', [ figLocSize(1) figLocSize(2) figLocSize(3) figLocSize(4) ])
 set (hGDU1_E_vxB_beam_plot, 'WindowStyle', 'normal')
 set (hGDU1_E_vxB_beam_plot, 'DockControls', 'off')
 set (gcf, 'name', 'Lorentz electron beam tracks and runner intersections in E and B fields', 'NumberTitle', 'off');
 
+hICS_plotElements (1) = plot3 (instrPlaneBCS (1,:), instrPlaneBCS (2,:), instrPlaneBCS (3,:),...
+	'LineStyle', '-', 'LineWidth', 1.0, 'Color', myDarkGreen);
+hold on
+hICS_plotElements (2) = plot3 (2.0*instrPlaneBCS (1,:), 2.0*instrPlaneBCS (2,:), 2.0*instrPlaneBCS (3,:),...
+	'LineStyle', '--', 'LineWidth', 1.0, 'Color', myDarkGreen);
+
+view ( [ 0.0 90.0 ] )
 axisMax = 2000.0;
-axis ( [ -axisMax axisMax -axisMax axisMax ] );
+axis ( [ -axisMax axisMax -axisMax axisMax -0.1 0.1] );
 axis equal
 axis manual
 grid on
 zoom on
 set (gca, 'nextplot', 'replacechildren');
 set (gca, 'Fontname', 'Times')
+hold on
 
-hICS_plotElements (1) = plot3 (GDU_planeInICS (1,:), GDU_planeInICS (2,:), GDU_planeInICS (3,:),...
-	'LineStyle', '-', 'LineWidth', 1.0, 'Color', myDarkGreen);
+% Move the platform
+platformDisplacement_x = MMS_speed_perigee * gyroPeriod ;
+% Platform rotation is neglible during gyroPeriod, being gyroPeriod / mmsSpinPeriod * twoPi
+% gyroPeriodRotation = gyroPeriod / mmsSpinPeriod * 360.0
+hICS_plotElements (3) = plot3 ( ...
+	instrPlaneBCS (1,:) +  platformDisplacement_x, ...
+	instrPlaneBCS (2,:), ...
+	instrPlaneBCS (3,:), ...
+	'LineStyle', '-', 'LineWidth', 1.0, 'Color', myGold);
 
-hICS_plotElements (2) = plot3 (2.0*GDU_planeInICS (1,:), 2.0*GDU_planeInICS (2,:), 2.0*GDU_planeInICS (3,:),...
-	'LineStyle', '--', 'LineWidth', 1.0, 'Color', myDarkBlue);
+hICS_plotElements (4) = plot3 ( ...
+	2.0*instrPlaneBCS (1,:) + platformDisplacement_x, ...
+	2.0*instrPlaneBCS (2,:), ...
+	2.0*instrPlaneBCS (3,:), ...
+	'LineStyle', '--', 'LineWidth', 1.0, 'Color', myGold);
 
 strAngles = 'EDI intersection angles: ';
 strTitle = { ...
@@ -139,12 +177,11 @@ title (strTitle, 'Fontname', 'Times', 'FontSize', 14, 'FontWeight', 'bold');
 xlabel ('GDU1 beamX (m)')
 ylabel ('GDU1 beamY (m)')
 TightFig;
-hold on
 
 GDU1_lastAngle = 0.0; % initialize so that loop works first time through
 
 % GDU1 is @ (0,-1.6), so the firing angles start @ 180°, and sweep CCW away from the obs
-for GDU1_firingAngle = 180.0: 360.0
+for GDU1_firingAngle = 170.0: 370.0
 	vx = ve * cosd (GDU1_firingAngle); % initial vx for this firing angle
 	vy = ve * sind (GDU1_firingAngle); % initial vy
 
@@ -179,8 +216,8 @@ for GDU1_firingAngle = 180.0: 360.0
 	iOffset = 50;
 	% ix = find (abs(GDU1_beamX(iOffset:end)) < zeroTol); % these are for finding hits on the same GDU
 	% iy = find (abs(GDU1_beamY(iOffset:end) + 1.6) < zeroTol);
-	ix = find (abs(GDU1_beamX(iOffset:end)) < zeroTol); % Find when detected by GDU1
-	iy = find (abs(GDU1_beamY(iOffset:end) - GDU2y) < zeroTol);             % GDU1_firingAngles: GDU1 =  129°, 309.5°, GDU2 = 51°, 230.5°
+	ix = find (abs(GDU1_beamX(iOffset:end) - platformDisplacement_x) < zeroTol); % Find when detected by GDU1
+	iy = find (abs(GDU1_beamY(iOffset:end) - GDU2y)                  < zeroTol);
 
 	% [xMin, ix] = min (abs(GDU1_beamX(iOffset:end))) % there are too many very small values
 	% [yMin, iy] = min (abs(GDU1_beamY(iOffset:end))) % and xMin and yMin don't have to occur at the same point
@@ -206,7 +243,7 @@ for GDU1_firingAngle = 180.0: 360.0
 			GDU2_lastAngle = 0.0;
 
 			% GDU2 is @ (0,+1.6), so the firing angles start @ 0°, and sweep CCW away from the obs
-			for GDU2_firingAngle = 0.0: 180.0 %nAngles
+			for GDU2_firingAngle = -10.0: 190.0 %nAngles
 				vx = ve * cosd (GDU2_firingAngle);
 				vy = ve * sind (GDU2_firingAngle);
 
@@ -225,8 +262,8 @@ for GDU1_firingAngle = 180.0: 360.0
 				pause (0.005)
 				iOffset = 50;
 
-				ix = find (abs (GDU2_beamX (iOffset:end)) < zeroTol); % Find when detected by GDU1
-				iy = find (abs (GDU2_beamY (iOffset:end) - GDU1y) < zeroTol);
+				ix = find (abs (GDU2_beamX (iOffset:end) - platformDisplacement_x) < zeroTol); % Find when detected by GDU2
+				iy = find (abs (GDU2_beamY (iOffset:end) - GDU1y)                  < zeroTol);
 
 				iIntersect = intersect (ix, iy);
 
@@ -272,25 +309,30 @@ for GDU1_firingAngle = 180.0: 360.0
 						xlim ([ -8.0 8.0 ])
 						ylim ([ -8.0 8.0 ])
 
-						x = -4.0:4.0; % virtualSourceBeam x-values
+						x = -4.0: 0.01: 4.0; % virtualSourceBeam x-values
 						% y = mx + b
 						m1 = tand (GDU1_firingAngle);
-						px = 0.0;
-						py = -3.2;
+						px = platformDisplacement_x;
+						py = -mmsEDI_VirtualRadius;
 						b1 = py - m1 * px;
-						line (x, m1 * x + b1)
+						line (x, m1 * x + b1, 'Color', myOrange)
 
 						m2 = tand (GDU2_firingAngle);
-						px = 0.0;
-						py = 3.2;
+						px = platformDisplacement_x;
+						py = mmsEDI_VirtualRadius;
 						b2 = py - m2 * px;
-						line (x, m2 * x + b2)
+						line (x, m2 * x + b2, 'Color', myOrange)
 
 						% Find S*: y1 = y2 ~> m1 x + b1 = m2 x + b2. x = (b2 - b1) / (m1 - m2). y = mx + b.
 						x12 = (b2 - b1) / (m1 - m2);
 						y12 = m1 * x12 +b1;
-						disp 'drift step x,y        S* x,y'
-						disp (sprintf ('%g    ', driftStep(1), 0.0, x12, y12))
+						% When we double the diamater of the real obs to create the virtual obs,
+						% we must account for twice the platform displacement, because the
+						% geometry is scaled up by 2X.
+						disp 'drift step x,y        S* x,y              ||S*||'
+						disp (sprintf ('%g    ', driftStep(1), 0.0, ...
+							2.0 * platformDisplacement_x - x12, y12, ...
+							norm ([(2.0 * platformDisplacement_x - x12), y12], 2) ))
 						dummy = waitforbuttonpress;
 						axis ( [ -axisMax axisMax -axisMax axisMax ] );
 

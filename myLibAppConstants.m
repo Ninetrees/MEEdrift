@@ -41,19 +41,19 @@ myMedVermilion  = [ 217.0,  96.0,  59.0 ] / 255.0; %
 
 % MMS-specific colors, plot characteristics
 % X,Y,Z is BLUE, GREEN, RED, solid, dashed, dotted
-MMS1_obsColor   = myBlack;
-MMS2_obsColor   = myVermilion;
-MMS3_obsColor   = myBluishGreen;
-MMS4_obsColor   = mySkyBlue;
-MMS_plotColorx  = mySkyBlue;
-MMS_plotColory  = myBluishGreen;
-MMS_plotColorz  = myVermilion;
-MMS_plotLinex   = '-';
-MMS_plotLiney   = '--';
-MMS_plotLinez   = ':';
+MMS_obs1Color   = myBlack;
+MMS_obs2Color   = myVermilion;
+MMS_obs3Color   = myBluishGreen;
+MMS_obs4Color   = mySkyBlue;
+MMS_plotxColor  = mySkyBlue;
+MMS_plotyColor  = myBluishGreen;
+MMS_plotzColor  = myVermilion;
+MMS_plotxLine   = '-';
+MMS_plotyLine   = '--';
+MMS_plotzLine   = ':';
 
 % DefaultAxesColors = [ myDarkBlue; myDarkRed; myDarkGreen; myOrange; myGrassGreen; myDarkTeal ];
-DefaultAxesColors = [ MMS_plotColorx; MMS_plotColory; MMS_plotColorz; myOrange; myGrassGreen; myDarkTeal ];
+DefaultAxesColors = [ MMS_plotxColor; MMS_plotyColor; MMS_plotzColor; myOrange; myGrassGreen; myDarkTeal ];
 set (groot, 'DefaultAxesColorOrder', DefaultAxesColors);
 set (groot, 'DefaultAxesLineStyleOrder', '-|--|:|-.');
 % -~-~-~-~-~-~-~-~-~
@@ -109,7 +109,7 @@ EDI_presentation_beam_plot_style.FontWeight      = 'auto';
 EDI_presentation_beam_plot_style.FontAngle       = 'auto';
 EDI_presentation_beam_plot_style.FontEncoding    = 'latin1';
 EDI_presentation_beam_plot_style.PSLevel         = '2';
-EDI_presentation_beam_plot_style.Renderer        = 'painters';
+EDI_presentation_beam_plot_style.Renderer        = 'painters'; % vector format
 EDI_presentation_beam_plot_style.Resolution      = '300';
 EDI_presentation_beam_plot_style.LineStyleMap    = 'none';
 EDI_presentation_beam_plot_style.ApplyStyle      = '0';

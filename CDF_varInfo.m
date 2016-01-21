@@ -125,18 +125,18 @@ function varInfo = CDF_varInfo (fileInfo, varName)
 % 				warning ('CDF_varInfo: Variable "%s" LABLAXIS not found in "%s".', varName, fileInfo.Filename)
 % 			end
 
-			[nSI_CONVERSION, ~] = size (fileInfo.VariableAttributes.SI_CONVERSION);
-			SI_Conversion_found = false;
-			for iSI_CONVERSION = 1 : nSI_CONVERSION
-				if strcmp (fileInfo.VariableAttributes.SI_CONVERSION {iSI_CONVERSION, 1}, varName)
-					varInfo.SI_conversion  = fileInfo.VariableAttributes.SI_CONVERSION {iSI_CONVERSION, 2};
-					SI_Conversion_found = true;
-				end
-			end
-			if ~SI_Conversion_found
-				varInfo.SI_conversion = [];
-				warning ('CDF_varInfo: Variable "%s" SI_CONVERSION not found in "%s".', varName, fileInfo.Filename)
-			end
+% 			[nSI_CONVERSION, ~] = size (fileInfo.VariableAttributes.SI_CONVERSION);
+% 			SI_Conversion_found = false;
+% 			for iSI_CONVERSION = 1 : nSI_CONVERSION
+% 				if strcmp (fileInfo.VariableAttributes.SI_CONVERSION {iSI_CONVERSION, 1}, varName)
+% 					varInfo.SI_conversion  = fileInfo.VariableAttributes.SI_CONVERSION {iSI_CONVERSION, 2};
+% 					SI_Conversion_found = true;
+% 				end
+% 			end
+% 			if ~SI_Conversion_found
+% 				varInfo.SI_conversion = [];
+% 				warning ('CDF_varInfo: Variable "%s" SI_CONVERSION not found in "%s".', varName, fileInfo.Filename)
+% 			end
 
 			[nUNITS, ~] = size (fileInfo.VariableAttributes.UNITS);
 			Units_found = false;

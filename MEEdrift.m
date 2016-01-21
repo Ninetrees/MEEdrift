@@ -7,7 +7,7 @@ clear variables
 close all       % close all figures
 
 global Project_;             Project_            = 'MMS_EDI_EDP_driftstep';
-global dotVersion;           dotVersion          = 'v2.03.00';
+global dotVersion;           dotVersion          = 'v2.04.00';
 global beamsWindow;          beamsWindow         = 4; % n, NOTE !!!! ± beamsWindow before|after center beam time
 global beamWindowSecs;       beamWindowSecs      = 2; % (s), NOTE !!!! ± beamWindowSecs before|after center beam time
 global ControlPanelActive;   ControlPanelActive  = false; % control panel can be open even if the main menu closes
@@ -127,7 +127,7 @@ else
 	if TestMode
 		UseFileOpenGUI = false;
 
-		mms_ql_dataPath = 'D:\MMS\MATLAB\MEEdrift\mms_edi_cdf';
+		mms_ql_dataPath = 'D:\MMS\MATLAB\MEEdrift2x\mms_edi_cdf';
 
 % 		mms_ql__EDI__BdvE__dataFile = 'mms1_edi_srvy_sl_efield_20150819_v0.2.3.cdf';
 % 		mms_ql__EDI__BdvE__dataFile = 'mms1_edi_srvy_sl_efield_20150820_v0.2.3.cdf';
@@ -147,7 +147,7 @@ else
 
 		mms_ql__EDI__BdvE__data = [mms_ql_dataPath cFileSep mms_ql__EDI__BdvE__dataFile];
 
-		mms_ql_dataPath = 'D:\MMS\MATLAB\MEEdrift\mms_edp_cdf';
+		mms_ql_dataPath = 'D:\MMS\MATLAB\MEEdrift2x\mms_edp_cdf';
 
 % 		mms_ql__EDP__dataFile = 'mms1_edp_slow_ql_dce_20150819000000_v0.2.0.cdf';
 % 		mms_ql__EDP__dataFile = 'mms1_edp_slow_ql_dce_20150820000000_v0.2.0.cdf';

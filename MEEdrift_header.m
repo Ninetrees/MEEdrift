@@ -2,6 +2,12 @@
 	Name: MEEdrift
 	Description: Compare EDP E-field measurements with calculated EDI E-fields
 
+	2015-09-20 ~ v02.04.00:
+	 ~ Change GitHub repo name from MEEdrift to MEEdrift2x.
+
+	2015-09-20 ~ v02.03.00:
+	 ~ Update test mode logic.
+
 	2015-09-20 ~ v02.02.00:
 	 ~ Update test mode logic.
 	 ~ Enhance MEEdrift_writeCurrentPlotData report.
